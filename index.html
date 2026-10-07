@@ -1,0 +1,2542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#031007">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="pwa-icons/icon-192.png">
+<title>Eru · Cosmic Companion v2.0 🌌</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; }
+  body {
+    background:#010402; color:#c9ffd9;
+    font-family:'Courier New', ui-monospace, monospace;
+    display:flex; justify-content:center;
+    overflow-x:hidden; touch-action:manipulation;
+    user-select:none; -webkit-user-select:none;
+  }
+  #wrap { width:100%; max-width:520px; min-height:100dvh; display:flex; flex-direction:column;
+    padding:10px 12px calc(150px + env(safe-area-inset-bottom)); }
+  header { display:flex; align-items:center; justify-content:space-between; padding:6px 4px 10px; }
+  #petName { font-size:22px; font-weight:bold; letter-spacing:3px; color:#7dff9e; text-shadow:0 0 12px #1fdc5a; }
+  #stageAge { font-size:12px; color:#8fdca5; letter-spacing:1px; }
+  #ver { font-size:10px; color:#4a7a5c; letter-spacing:2px; border:1px solid #14532a; border-radius:8px; padding:3px 8px; }
+  #soundBtn { background:#0a2413; border:2px solid #1fdc5a; color:#7dff9e; border-radius:12px;
+    font-size:18px; width:44px; height:44px; cursor:pointer; touch-action:manipulation; }
+  #soundBtn:active { transform:scale(.93); }
+
+  /* ---------- views ---------- */
+  .view { width:100%; flex-direction:column; }
+
+  /* ---------- pet screen ---------- */
+  #screen {
+    position:relative; width:100%; aspect-ratio:1/1.02;
+    border:4px solid #1fdc5a; border-radius:22px; overflow:hidden;
+    background:radial-gradient(ellipse at 50% 120%, #062b16 0%, #020a05 55%, #000 100%);
+    box-shadow:0 0 24px rgba(31,220,90,.35), inset 0 0 60px rgba(0,0,0,.7);
+  }
+  .star { position:absolute; background:#39ff6a; border-radius:50%; pointer-events:none;
+    animation:twinkle var(--tw,2.5s) ease-in-out infinite alternate; will-change:opacity,transform; }
+  @keyframes twinkle { from { opacity:.25; transform:scale(.7); } to { opacity:1; transform:scale(1.15); } }
+  #nightTint { position:absolute; inset:0; background:#000; opacity:0; transition:opacity 1.2s; pointer-events:none; z-index:5; }
+  #screen.sleeping #nightTint { opacity:.55; }
+
+  #petWrap { position:absolute; left:50%; bottom:24%; transform:translateX(-50%); z-index:3; text-align:center;
+    animation:bob 2.4s ease-in-out infinite; will-change:transform; }
+  @keyframes bob { 0%,100% { transform:translateX(-50%) translateY(0); } 50% { transform:translateX(-50%) translateY(-10px); } }
+  #petWrap.sleepy { animation:sway 3.6s ease-in-out infinite; }
+  @keyframes sway { 0%,100% { transform:translateX(-50%) rotate(-4deg); } 50% { transform:translateX(-50%) rotate(4deg); } }
+  #petWrap.sick { animation:wobble .9s ease-in-out infinite; }
+  @keyframes wobble { 0%,100% { transform:translateX(-50%) rotate(-7deg); } 50% { transform:translateX(-50%) rotate(7deg); } }
+
+  /* fixed square box: the image can never distort */
+  #petBox {
+    width:150px; height:150px; aspect-ratio:1/1; overflow:hidden; border-radius:50%;
+    margin:0 auto; transition:width .6s ease, height .6s ease, filter .5s;
+    box-shadow:0 0 18px rgba(57,255,106,.45);
+  }
+  #petBox img { width:100%; height:100%; object-fit:cover; display:block; }
+  #petBox.teen { width:185px; height:185px; box-shadow:0 0 30px rgba(57,255,106,.8); }
+  #petBox.adult { width:215px; height:215px; box-shadow:0 0 42px rgba(125,255,158,.95); }
+  #petBox.sleepy img { filter:brightness(.6); }
+  #petBox.sick img { filter:hue-rotate(70deg) saturate(1.4); }
+  #petBox.sad img { filter:grayscale(.55) brightness(.75); }
+  #petBox.happy img { filter:saturate(1.25); }
+  #petBox.blink { scale:1 .08; }
+  #petBox.eating { animation:chomp .35s ease-in-out 3; }
+  @keyframes chomp { 0%,100% { transform:scale(1); } 50% { transform:scale(1.12,.88); } }
+
+  #egg {
+    width:120px; height:150px; margin:0 auto;
+    background:radial-gradient(ellipse at 35% 30%, #eafff0 0%, #b9f5cd 35%, #5fdc8a 70%, #2a9e57 100%);
+    border-radius:50% 50% 50% 50% / 62% 62% 38% 38%;
+    box-shadow:0 0 30px rgba(125,255,158,.6), inset -8px -10px 24px rgba(0,60,25,.45);
+    animation:eggwiggle 3s ease-in-out infinite; will-change:transform;
+  }
+  @keyframes eggwiggle { 0%,100% { transform:rotate(-3deg); } 50% { transform:rotate(3deg); } }
+  #egg.cracking { animation:eggshake .3s linear 6; }
+  @keyframes eggshake { 0%,100% { transform:translateX(0); } 25% { transform:translateX(-6px) rotate(-6deg); } 75% { transform:translateX(6px) rotate(6deg); } }
+
+  #accessory { position:absolute; top:-34px; left:50%; transform:translateX(-50%); font-size:34px; pointer-events:none; }
+  #moodBadge { position:absolute; top:-6px; right:-14px; font-size:30px; pointer-events:none; }
+  #zzz { position:absolute; top:-30px; left:-10px; font-size:28px; pointer-events:none;
+    animation:zfloat 2.6s ease-in-out infinite; will-change:transform,opacity; }
+  @keyframes zfloat { 0% { transform:translateY(6px); opacity:0; } 30% { opacity:1; } 100% { transform:translateY(-18px); opacity:0; } }
+
+  #bubble {
+    position:absolute; top:8px; left:50%; transform:translateX(-50%);
+    max-width:88%; background:#eafff0; color:#062b16;
+    border:3px solid #1fdc5a; border-radius:16px; padding:10px 14px;
+    font-size:14px; font-weight:bold; line-height:1.35; text-align:center;
+    z-index:6; transition:opacity .3s; box-shadow:0 4px 14px rgba(0,0,0,.5);
+  }
+  #bubble:after { content:''; position:absolute; bottom:-12px; left:50%; transform:translateX(-50%);
+    border:7px solid transparent; border-top-color:#1fdc5a; }
+  #bubble.hidden { opacity:0; pointer-events:none; }
+
+  .poop { position:absolute; font-size:34px; z-index:2; animation:poopin .4s ease-out; }
+  @keyframes poopin { from { transform:scale(0) rotate(40deg); } to { transform:scale(1) rotate(0); } }
+  .sparkle { position:absolute; font-size:18px; z-index:4; pointer-events:none; animation:sparkleUp 1.4s ease-out forwards; will-change:transform,opacity; }
+  @keyframes sparkleUp { from { transform:translateY(0) scale(.5); opacity:1; } to { transform:translateY(-60px) scale(1.3); opacity:0; } }
+
+  #gameLayer { position:absolute; inset:0; z-index:8; background:rgba(1,8,4,.55); }
+  #gameLayer.hidden { display:none; }
+  #gameCanvas { width:100%; height:100%; display:block; touch-action:none; }
+  #gameHud { position:absolute; top:8px; left:0; right:0; display:flex; justify-content:space-around;
+    font-size:15px; font-weight:bold; color:#7dff9e; pointer-events:none; }
+
+  #overlay { position:absolute; inset:0; z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:rgba(0,4,2,.88); text-align:center; padding:24px; gap:16px; }
+  #overlay.hidden { display:none; }
+  #overlay h2 { color:#7dff9e; font-size:20px; letter-spacing:2px; }
+  #overlay p { font-size:14px; line-height:1.5; color:#c9ffd9; }
+
+  /* ---------- stats ---------- */
+  #stats { display:flex; flex-direction:column; gap:7px; padding:12px 4px 6px; }
+  .stat { display:flex; align-items:center; gap:8px; font-size:12px; }
+  .stat .ico { width:30px; text-align:center; font-size:16px; }
+  .stat .lbl { width:74px; letter-spacing:1px; color:#8fdca5; }
+  .bar { flex:1; height:14px; background:#06130b; border:2px solid #14532a; border-radius:8px; overflow:hidden; }
+  .fill { height:100%; width:100%; border-radius:5px; transition:width .6s ease, background .6s; background:linear-gradient(90deg,#1fdc5a,#7dff9e); }
+  .stat.low .fill { background:linear-gradient(90deg,#dc2626,#f87171); }
+  .stat.low .lbl { color:#f87171; }
+  .stat .val { width:34px; text-align:right; color:#8fdca5; }
+
+  /* ---------- buttons ---------- */
+  #foodMenu { display:flex; gap:8px; justify-content:center; padding:4px 0; }
+  #foodMenu.hidden { display:none; }
+  #actions { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:8px 0 4px; }
+  button.act, .foodBtn, #overlay button, .bigbtn {
+    font-family:inherit; cursor:pointer; touch-action:manipulation;
+    background:linear-gradient(180deg,#0d3a1e,#071f10);
+    border:2px solid #1fdc5a; border-radius:14px; color:#c9ffd9;
+    padding:12px 4px; font-size:12px; font-weight:bold; letter-spacing:.5px;
+  }
+  button.act { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:11px; min-height:64px; justify-content:center; }
+  button.act .e { font-size:22px; }
+  button.act:active, .foodBtn:active, #overlay button:active, .bigbtn:active { transform:scale(.94); background:#14532a; }
+  button.act:disabled { opacity:.35; }
+  .foodBtn { font-size:12px; padding:10px 8px; display:flex; flex-direction:column; gap:2px; align-items:center; }
+  .foodBtn .e { font-size:20px; }
+  .bigbtn { width:100%; padding:16px; font-size:15px; letter-spacing:2px; margin:10px 0; }
+  #hint { text-align:center; font-size:11px; color:#5a8a68; padding:8px 4px 0; line-height:1.5; letter-spacing:.5px; }
+
+  /* ---------- arena ---------- */
+  #arenaHead { text-align:center; padding:8px 4px; }
+  #arenaTitle { font-size:22px; font-weight:bold; letter-spacing:3px; color:#7dff9e; text-shadow:0 0 14px #1fdc5a; }
+  #arenaRecord { font-size:12px; color:#8fdca5; letter-spacing:1px; margin-top:6px; }
+  .fighter { display:flex; gap:12px; align-items:center; background:rgba(6,19,11,.92);
+    border:2px solid #14532a; border-radius:14px; padding:12px; margin:8px 0; }
+  .fighter .av { position:relative; width:84px; height:84px; flex:0 0 84px; border-radius:50%; overflow:hidden; aspect-ratio:1/1; }
+  .fighter .av img { width:100%; height:100%; object-fit:cover; display:block; }
+  .fighter .av .facc { position:absolute; top:-4px; right:-4px; font-size:26px; }
+  .fighter .fname { font-size:15px; font-weight:bold; color:#7dff9e; }
+  .fighter .fsub { font-size:11px; color:#8fdca5; margin-top:3px; line-height:1.4; }
+  .hpbar { height:12px; background:#06130b; border:2px solid #14532a; border-radius:7px; overflow:hidden; margin-top:6px; }
+  .hpfill { height:100%; width:100%; transition:width .4s ease; background:linear-gradient(90deg,#1fdc5a,#7dff9e); }
+  .hpfill.hurt { background:linear-gradient(90deg,#dc2626,#f87171); }
+  #blog { background:#020a05; border:2px solid #14532a; border-radius:14px; padding:10px 12px;
+    font-size:12.5px; line-height:1.55; height:190px; overflow-y:auto; margin:8px 0; color:#c9ffd9; }
+  #blog .me { color:#7dff9e; } #blog .foe { color:#f0a35e; } #blog .sys { color:#8fdca5; font-style:italic; }
+  #moves { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; padding:4px 0; }
+  .mvbtn { min-height:60px; }
+  .mvbtn small { display:block; font-size:10px; color:#8fdca5; font-weight:normal; margin-top:3px; }
+  .mvbtn:disabled { opacity:.35; }
+
+  /* ---------- radio ---------- */
+  #rHead { text-align:center; padding:8px 4px 4px; }
+  #rTitle { font-size:22px; font-weight:bold; letter-spacing:3px; color:#7dff9e; text-shadow:0 0 14px #1fdc5a; }
+  #rSub { font-size:11px; color:#8fdca5; letter-spacing:1px; margin-top:4px; }
+  #rNotice { background:#2a1f05; border:2px solid #b8860b; color:#ffd97d; border-radius:12px;
+    padding:10px 12px; font-size:12px; line-height:1.5; margin:6px 2px; }
+  #rNotice.hidden { display:none; }
+  #rSearch { width:100%; padding:13px 14px; font-size:16px; font-family:inherit; margin:8px 0 4px;
+    background:#06130b; border:2px solid #1fdc5a; border-radius:14px; color:#c9ffd9; outline:none; }
+  #rSearch::placeholder { color:#4a7a5c; }
+  #rChips, #rGenres { display:flex; gap:8px; padding:4px 2px 8px; flex-wrap:wrap; }
+  .rchip { flex:1 1 0; min-width:64px; padding:10px 4px; text-align:center; font-size:11px; font-family:inherit;
+    background:#0a2413; border:2px solid #14532a; color:#8fdca5; border-radius:12px; cursor:pointer;
+    letter-spacing:1px; touch-action:manipulation; }
+  .rchip.active { border-color:#1fdc5a; color:#7dff9e; }
+  .rchip:active { transform:scale(.95); }
+  #rState { width:100%; margin:2px 0 6px; padding:12px; font-size:14px; font-family:inherit;
+    background:#06130b; border:2px solid #1fdc5a; border-radius:14px; color:#c9ffd9; outline:none; }
+  #rCount { font-size:11px; color:#4a7a5c; padding:0 4px 6px; letter-spacing:1px; }
+  #rList { display:flex; flex-direction:column; gap:8px; }
+  .rrow { display:flex; align-items:center; gap:10px; background:rgba(6,19,11,.92);
+    border:2px solid #14532a; border-radius:14px; padding:12px 10px; cursor:pointer;
+    content-visibility:auto; contain-intrinsic-size:auto 78px; touch-action:manipulation; }
+  .rrow:active { transform:scale(.985); }
+  .rrow.playing { border-color:#1fdc5a; }
+  .rrow.dead { opacity:.55; }
+  .rbadge { flex:0 0 46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    font-size:20px; background:#0a2413; border:2px solid #1fdc5a; color:#7dff9e; }
+  .rmeta { flex:1; min-width:0; }
+  .rname { font-size:15px; font-weight:bold; color:#7dff9e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rsub { font-size:12px; color:#8fdca5; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rgenre { display:inline-block; font-size:10px; letter-spacing:1px; margin-top:5px; margin-right:6px; padding:2px 8px;
+    border:1px solid #1fdc5a; border-radius:20px; color:#7dff9e; background:rgba(31,220,90,.08); }
+  .rdead-tag { display:inline-block; font-size:10px; letter-spacing:1px; margin-top:5px; padding:2px 8px;
+    border:1px solid #dc2626; border-radius:20px; color:#f87171; background:rgba(220,38,38,.08); }
+  .riconbtn { flex:0 0 44px; height:44px; border-radius:12px; font-size:19px; cursor:pointer; touch-action:manipulation;
+    background:#0a2413; border:2px solid #14532a; color:#8fdca5; font-family:inherit; }
+  .riconbtn:active { transform:scale(.9); }
+  .riconbtn.faved { color:#ffd97d; border-color:#b8860b; }
+  .rempty { text-align:center; color:#4a7a5c; font-size:14px; padding:30px 10px; letter-spacing:1px; line-height:1.6; }
+  #rLoading { text-align:center; color:#8fdca5; font-size:14px; padding:18px; letter-spacing:2px; }
+  #rLoading.hidden { display:none; }
+
+  /* ---------- radio source selector ---------- */
+  #srcBar { display:flex; gap:8px; margin:0 0 6px; }
+  .srcbtn { flex:1; font-family:inherit; background:#0a2413; border:2px solid #14532a; color:#8fdca5;
+    border-radius:12px; padding:10px 4px; font-size:12px; font-weight:bold; letter-spacing:1px; cursor:pointer;
+    touch-action:manipulation; min-height:48px; }
+  .srcbtn.active { border-color:#1fdc5a; color:#7dff9e; box-shadow:0 0 10px rgba(31,220,90,.3); }
+  .srcbtn:active { transform:scale(.96); }
+  .rsoma { display:inline-block; font-size:10px; letter-spacing:1px; margin-top:5px; padding:2px 8px;
+    border:1px solid #a78bfa; border-radius:20px; color:#c4b5fd; background:rgba(167,139,250,.08); }
+
+  /* ---------- tab bar + player ---------- */
+  #tabBar { position:fixed; left:50%; transform:translateX(-50%); bottom:0; z-index:40;
+    width:100%; max-width:520px; display:flex; gap:8px;
+    padding:10px 14px calc(12px + env(safe-area-inset-bottom));
+    background:rgba(2,10,5,.97); border-top:2px solid #1fdc5a; }
+  .tabbtn { flex:1; font-family:inherit; background:#0a2413; border:2px solid #14532a; color:#8fdca5;
+    border-radius:14px; padding:12px 6px; font-size:13px; font-weight:bold; letter-spacing:1px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:6px; touch-action:manipulation;
+    min-height:56px; }
+  .tabbtn .e { font-size:20px; }
+  .tabbtn.active { border-color:#1fdc5a; color:#7dff9e; box-shadow:0 0 12px rgba(31,220,90,.35); }
+  .tabbtn:active { transform:scale(.96); }
+  #nowPlaying { position:fixed; left:50%; transform:translateX(-50%); z-index:35;
+    bottom:calc(76px + env(safe-area-inset-bottom));
+    width:100%; max-width:520px; padding:10px 12px;
+    background:rgba(2,10,5,.97); border-top:2px solid #1fdc5a; border-bottom:2px solid #14532a;
+    display:none; }
+  #nowPlaying.show { display:block; }
+  #npTop { display:flex; align-items:center; gap:10px; }
+  #npLive { font-size:10px; font-weight:bold; letter-spacing:2px; color:#031007; background:#39ff6a;
+    border-radius:6px; padding:4px 8px; }
+  #npName { font-size:14px; font-weight:bold; color:#7dff9e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; }
+  #npSub { font-size:11px; color:#8fdca5; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #npErr { font-size:11px; color:#f87171; margin-top:4px; display:none; }
+  #npErr.show { display:block; }
+  #npControls { display:flex; align-items:center; gap:10px; margin-top:8px; }
+  #npPlay, #npClose { width:46px; height:40px; border-radius:10px; font-size:17px; cursor:pointer; touch-action:manipulation;
+    background:#0a2413; border:2px solid #1fdc5a; color:#7dff9e; font-family:inherit; }
+  #npVol { flex:1; accent-color:#1fdc5a; }
+
+  /* ---------- cohesion + arena flow polish ---------- */
+  .cohTitle { font-size:14px; font-weight:bold; letter-spacing:2px; color:#7dff9e; margin:16px 0 4px; }
+  .cohBlurb { font-size:11px; color:#8fdca5; line-height:1.55; margin:0 2px 2px; }
+  .foerow { display:flex; gap:10px; align-items:center; background:rgba(6,19,11,.92);
+    border:2px solid #14532a; border-radius:14px; padding:10px; margin:6px 0; cursor:pointer;
+    touch-action:manipulation; }
+  .foerow.sel { border-color:#1fdc5a; box-shadow:0 0 10px rgba(31,220,90,.35); }
+  .foerow .av { position:relative; width:56px; height:56px; flex:0 0 56px; border-radius:50%;
+    overflow:hidden; aspect-ratio:1/1; border:1px solid #14532a; }
+  .foerow .av img { width:100%; height:100%; object-fit:cover; display:block; }
+  .foerow .av .facc { position:absolute; top:-4px; right:-4px; font-size:18px; }
+  .foerow .fname { font-size:13px; font-weight:bold; color:#7dff9e; }
+  .foerow .fsub { font-size:10px; color:#8fdca5; margin-top:2px; line-height:1.4; }
+  .foerow .rx { flex:0 0 38px; height:38px; border-radius:10px; background:#0a2413;
+    border:2px solid #7f1d1d; color:#f87171; font-size:15px; cursor:pointer; font-family:inherit;
+    touch-action:manipulation; }
+  #shareCode { width:100%; font-family:inherit; font-size:11px; background:#06130b; color:#7dff9e;
+    border:2px solid #1fdc5a; border-radius:12px; padding:10px; margin:6px 0; word-break:break-all;
+    resize:none; }
+  #rivalCodeInput { width:100%; padding:13px 14px; font-size:14px; font-family:inherit; margin:6px 0;
+    background:#06130b; border:2px solid #1fdc5a; border-radius:14px; color:#c9ffd9; outline:none; }
+  .errline { color:#f87171; font-size:12px; padding:6px 2px; line-height:1.5; }
+  .cohNote { color:#7dff9e; font-size:12px; padding:6px 2px; }
+  #battleReport { background:rgba(6,19,11,.96); border:2px solid #1fdc5a; border-radius:16px;
+    padding:16px 14px; margin:8px 0; text-align:center; }
+  #battleReport.show { animation:repIn .45s ease-out; }
+  @keyframes repIn { from { opacity:0; transform:translateY(16px) scale(.96); } to { opacity:1; transform:none; } }
+  #repBanner { font-size:22px; font-weight:bold; letter-spacing:3px; margin-bottom:8px; }
+  #repBanner.win { color:#7dff9e; text-shadow:0 0 16px #1fdc5a; }
+  #repBanner.lose { color:#f0a35e; }
+  #repStats { font-size:13px; line-height:1.9; color:#c9ffd9; }
+  #repStats b { color:#7dff9e; }
+  #repStats .repfoe { font-size:11px; color:#8fdca5; margin-top:4px; }
+  #repRecord { font-size:11px; color:#8fdca5; letter-spacing:1px; margin-top:8px; }
+  #repBtns { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+  #repBtns .mvbtn { min-height:64px; }
+  #blog .dmg { color:#ffd97d; font-weight:bold; }
+  #blog .round { color:#4a7a5c; text-align:center; letter-spacing:3px; font-size:11px; margin:6px 0 2px; }
+  #blog .sys { color:#7dff9e; }
+
+  /* ---------- avatar customization ---------- */
+  #customSheet { position:fixed; inset:0; z-index:60; display:none; }
+  #customSheet.open { display:block; }
+  #customBackdrop { position:absolute; inset:0; background:rgba(0,0,0,.62); }
+  #customPanel { position:absolute; left:50%; transform:translateX(-50%); bottom:0; width:100%; max-width:520px;
+    max-height:88vh; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    background:#04140a; border-top:2px solid #1fdc5a; border-left:2px solid #14532a; border-right:2px solid #14532a;
+    border-radius:20px 20px 0 0; padding:14px 16px calc(20px + env(safe-area-inset-bottom)); }
+  #customSheet.open #customPanel { animation:sheetIn .3s ease-out; }
+  @keyframes sheetIn { from { transform:translate(-50%,48px); opacity:0; } to { transform:translate(-50%,0); opacity:1; } }
+  #customHead { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+  #customHead .t { font-size:15px; font-weight:bold; letter-spacing:2px; color:#7dff9e; }
+  #customClose { width:44px; height:44px; border-radius:12px; font-size:16px; cursor:pointer; touch-action:manipulation;
+    background:#0a2413; border:2px solid #14532a; color:#8fdca5; font-family:inherit; }
+  #customPreviewWrap { position:relative; width:140px; height:140px; margin:6px auto 4px; border-radius:50%;
+    overflow:hidden; border:3px solid #1fdc5a; aspect-ratio:1/1; }
+  #customPreviewWrap img { width:100%; height:100%; object-fit:cover; display:block; }
+  #customPreviewAcc { position:absolute; top:2px; right:12px; font-size:34px; pointer-events:none; }
+  #customPreviewName { text-align:center; font-size:14px; font-weight:bold; color:#7dff9e; letter-spacing:1px; margin-bottom:2px; }
+  .custLabel { font-size:11px; letter-spacing:2px; color:#8fdca5; margin:12px 0 6px; }
+  .custRow { display:flex; gap:8px; flex-wrap:wrap; }
+  .custbtn { font-family:inherit; background:#0a2413; border:2px solid #14532a; color:#c9ffd9; border-radius:12px;
+    padding:10px 12px; font-size:13px; cursor:pointer; touch-action:manipulation; min-height:52px; min-width:60px;
+    display:flex; align-items:center; justify-content:center; gap:6px; }
+  .custbtn .dot { width:16px; height:16px; border-radius:50%; flex:0 0 16px; }
+  .custbtn.sel { border-color:#1fdc5a; box-shadow:0 0 10px rgba(31,220,90,.35); color:#7dff9e; }
+  .custbtn:active { transform:scale(.95); }
+  #nameRow { display:flex; gap:8px; }
+  #customNameInput { flex:1; padding:13px 14px; font-size:15px; font-family:inherit; background:#06130b;
+    border:2px solid #1fdc5a; border-radius:14px; color:#c9ffd9; outline:none; min-width:0; }
+  #customNameSave { flex:0 0 56px; border-radius:14px; font-size:20px; cursor:pointer; touch-action:manipulation;
+    background:#0a2413; border:2px solid #1fdc5a; color:#7dff9e; font-family:inherit; }
+
+  /* ---------- jobs / training / gear ---------- */
+  #jobsHead { display:flex; align-items:center; justify-content:space-between; padding:14px 4px 2px; }
+  #jobsTitle { font-size:18px; font-weight:bold; letter-spacing:2px; color:#7dff9e; }
+  #shardBal { font-size:15px; font-weight:bold; color:#7dff9e; background:#0a2413;
+    border:2px solid #1fdc5a; border-radius:12px; padding:8px 12px; white-space:nowrap; }
+  #mineGrid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:6px 0; }
+  .rockbtn { font-family:inherit; font-size:34px; min-height:68px; border-radius:14px; cursor:pointer;
+    touch-action:manipulation; background:#0a2413; border:2px solid #14532a; }
+  .rockbtn:active { transform:scale(.92); }
+  .rockbtn.cracked { opacity:.7; }
+  #herbStrip { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:6px 0; }
+  .herbbtn { font-family:inherit; font-size:34px; min-height:68px; border-radius:14px; cursor:pointer;
+    touch-action:manipulation; background:#0a2413; border:2px solid #14532a; }
+  .herbbtn:active { transform:scale(.92); }
+  .herbbtn.glow { border-color:#ffd97d; box-shadow:0 0 14px rgba(255,217,125,.6); }
+  #herbTime { text-align:center; color:#8fdca5; font-size:13px; margin:4px 0; letter-spacing:1px; }
+  #powerBadge { font-size:12px; font-weight:bold; color:#7dff9e; letter-spacing:1px; margin-top:2px; }
+  #gearBadges { position:absolute; bottom:-6px; right:6px; font-size:22px; pointer-events:none; }
+  #petBox.train { animation:trainPulse .6s ease; }
+  @keyframes trainPulse { 0% { scale:1; } 40% { scale:1.12; } 100% { scale:1; } }
+</style>
+</head>
+<body>
+<div id="wrap">
+
+  <!-- ============ PET VIEW ============ -->
+  <div class="view" id="viewPet">
+    <header>
+      <div>
+        <div id="petName">ERU</div>
+        <div id="stageAge">🥚 Egg</div>
+        <div id="powerBadge">⚡ PL 1</div>
+      </div>
+      <div id="ver">v2.0</div>
+      <button id="soundBtn" title="Sound on/off" aria-label="toggle sound">🔊</button>
+    </header>
+
+    <div id="screen">
+      <div id="nightTint"></div>
+      <div id="bubble" class="hidden"></div>
+      <div id="petWrap">
+        <div id="egg"></div>
+        <div id="petBox" style="display:none"><img id="petImg" src="data:image/webp;base64,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" alt="Eru the cosmic wizard" draggable="false"></div>
+        <div id="accessory"></div>
+        <div id="gearBadges"></div>
+        <div id="moodBadge"></div>
+        <div id="zzz" class="hidden">💤</div>
+      </div>
+      <div id="poops"></div>
+      <div id="gameLayer" class="hidden">
+        <canvas id="gameCanvas"></canvas>
+        <div id="gameHud"><span id="gameScore">⭐ 0</span><span id="gameTime">⏱ 30</span></div>
+      </div>
+      <div id="overlay" class="hidden">
+        <h2 id="ovTitle"></h2>
+        <p id="ovText"></p>
+        <button id="ovBtn"></button>
+      </div>
+    </div>
+
+    <div id="stats">
+      <div class="stat" id="st-hunger"><span class="ico">🍖</span><span class="lbl">HUNGER</span><div class="bar"><div class="fill"></div></div><span class="val"></span></div>
+      <div class="stat" id="st-happy"><span class="ico">😊</span><span class="lbl">HAPPY</span><div class="bar"><div class="fill"></div></div><span class="val"></span></div>
+      <div class="stat" id="st-energy"><span class="ico">⚡</span><span class="lbl">ENERGY</span><div class="bar"><div class="fill"></div></div><span class="val"></span></div>
+      <div class="stat" id="st-hygiene"><span class="ico">🫧</span><span class="lbl">CLEAN</span><div class="bar"><div class="fill"></div></div><span class="val"></span></div>
+      <div class="stat" id="st-health"><span class="ico">❤️</span><span class="lbl">HEALTH</span><div class="bar"><div class="fill"></div></div><span class="val"></span></div>
+    </div>
+
+    <div id="foodMenu" class="hidden">
+      <button class="foodBtn" data-food="cookie"><span class="e">🍪</span>Stardust Cookie</button>
+      <button class="foodBtn" data-food="berry"><span class="e">🫐</span>Nebula Berry</button>
+      <button class="foodBtn" data-food="burger"><span class="e">🍔</span>Comet Burger</button>
+    </div>
+
+    <div id="actions">
+      <button class="act" id="btnFeed"><span class="e">🍽️</span>FEED</button>
+      <button class="act" id="btnPlay"><span class="e">🎮</span>PLAY</button>
+      <button class="act" id="btnSleep"><span class="e">😴</span><span class="t">SLEEP</span></button>
+      <button class="act" id="btnClean"><span class="e">🧹</span>CLEAN</button>
+      <button class="act" id="btnHeal"><span class="e">💊</span>HEAL</button>
+      <button class="act" id="btnFight"><span class="e">⚔️</span>ARENA</button>
+      <button class="act" id="btnCustomize"><span class="e">🎨</span>CUSTOMIZE</button>
+      <button class="act" id="btnTrain"><span class="e">🏋️</span>TRAIN</button>
+    </div>
+
+    <div id="hint">Eru hungers for attention, mortal.<br>Neglect him and the stars grow dim… 🌌</div>
+  </div>
+
+  <!-- ============ ARENA VIEW ============ -->
+  <div class="view" id="viewArena" style="display:none">
+    <div id="arenaHead">
+      <div id="arenaTitle">⚔️ STAR ARENA</div>
+      <div id="arenaRecord">WINS 0 · LOSSES 0</div>
+    </div>
+    <div id="arenaHome">
+      <p id="arenaBlurb" style="font-size:12px;color:#8fdca5;line-height:1.6;padding:4px 2px 0">
+        Rival cosmic spirits challenge you. Victory feeds on care: a well-fed, happy Eru hits harder.
+        Entering costs 5⚡. Battle never kills — only glory (or mild embarrassment) awaits.
+      </p>
+      <button class="bigbtn" id="btnEnterArena">⚔️ ENTER THE ARENA</button>
+      <div class="cohTitle">🎯 CHOOSE YOUR RIVAL</div>
+      <div id="foePicker"></div>
+      <div class="cohTitle">🔗 COHESION — BATTLE OTHER MUSES</div>
+      <p class="cohBlurb">Share your Muse as a short code, or paste a fellow keeper's code to add their Muse as a rival. No accounts, no servers — just codes.</p>
+      <button class="bigbtn" id="btnShareMuse">📤 SHARE MY MUSE</button>
+      <div id="shareBox" style="display:none">
+        <textarea id="shareCode" readonly rows="3" aria-label="your Muse share code"></textarea>
+        <button class="bigbtn" id="btnCopyCode">📋 COPY CODE</button>
+        <div id="copyNote" class="cohNote" style="display:none">Copied! Send it to a fellow Muse keeper. 📨</div>
+      </div>
+      <div class="cohTitle">➕ ADD A RIVAL'S MUSE</div>
+      <input id="rivalCodeInput" placeholder="paste a Muse code…" autocomplete="off" aria-label="paste a Muse code">
+      <button class="bigbtn" id="btnAddRival">➕ ADD RIVAL</button>
+      <div id="rivalErr" class="errline" style="display:none"></div>
+    </div>
+    <div id="arenaFight" style="display:none">
+      <div class="fighter" id="foeCard">
+        <div class="av"><img id="foeImg" alt="rival spirit"><span class="facc" id="foeAcc"></span></div>
+        <div style="flex:1;min-width:0">
+          <div class="fname" id="foeName"></div>
+          <div class="fsub" id="foeSub"></div>
+          <div class="hpbar"><div class="hpfill" id="foeHp"></div></div>
+        </div>
+      </div>
+      <div class="fighter">
+        <div class="av"><img id="petFightImg" alt="Eru"><span class="facc" id="fightAcc"></span></div>
+        <div style="flex:1;min-width:0">
+          <div class="fname">ERU</div>
+          <div class="fsub" id="petFightSub"></div>
+          <div class="hpbar"><div class="hpfill" id="petHp"></div></div>
+          <div class="hpbar" style="margin-top:4px"><div class="hpfill" id="petEp" style="background:linear-gradient(90deg,#3b82f6,#93c5fd)"></div></div>
+        </div>
+      </div>
+      <div id="blog" aria-live="polite"></div>
+      <div id="moves">
+        <button class="act mvbtn" id="mvAttack">⚔️ ATTACK<small>reliable starlight slash</small></button>
+        <button class="act mvbtn" id="mvBurst">🌟 STAR BURST<small>1.7× dmg · 8 EP</small></button>
+        <button class="act mvbtn" id="mvGuard">🛡️ GUARD<small>halve next hit</small></button>
+        <button class="act mvbtn" id="mvSnack">🍪 SNACK<small>heal 35% · 2 uses</small></button>
+      </div>
+      <button class="bigbtn" id="btnForfeit" style="margin-top:4px">🏳️ FORFEIT</button>
+      <div id="battleReport" style="display:none">
+        <div id="repBanner">🏆</div>
+        <div id="repStats"></div>
+        <div id="repRecord"></div>
+        <div id="repBtns">
+          <button class="act mvbtn" id="btnRematch">🔁 REMATCH<small>same opponent</small></button>
+          <button class="act mvbtn" id="btnNewFoe">🎲 NEW RIVAL<small>choose opponent</small></button>
+          <button class="act mvbtn" id="btnBackPet">🐣 PET<small>back to your Muse</small></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ RADIO VIEW ============ -->
+  <div class="view" id="viewRadio" style="display:none">
+    <div id="rHead">
+      <div id="rTitle">📻 COSMIC RADIO</div>
+      <div id="rSub">ALL US STATIONS · LIVE</div>
+    </div>
+    <div id="srcBar" role="tablist" aria-label="radio source">
+      <button class="srcbtn active" data-src="us">🇺🇸 US</button>
+      <button class="srcbtn" data-src="world">🌍 WORLDWIDE</button>
+      <button class="srcbtn" data-src="soma">🛰️ SOMAFM</button>
+    </div>
+    <div id="rNotice" class="hidden"></div>
+    <input id="rSearch" type="search" placeholder="🔍 search all US stations…" autocomplete="off" aria-label="search stations">
+    <div id="rChips">
+      <button class="rchip active" data-view="all">ALL</button>
+      <button class="rchip" data-view="fav">★ FAVES</button>
+      <button class="rchip" data-view="recent">🕐 RECENT</button>
+    </div>
+    <div id="rGenres">
+      <button class="rchip g active" data-genre="">🎵 ALL</button>
+      <button class="rchip g" data-genre="news">NEWS</button>
+      <button class="rchip g" data-genre="rock">ROCK</button>
+      <button class="rchip g" data-genre="country">COUNTRY</button>
+      <button class="rchip g" data-genre="jazz">JAZZ</button>
+      <button class="rchip g" data-genre="classical">CLASSICAL</button>
+      <button class="rchip g" data-genre="hip-hop">HIP-HOP</button>
+      <button class="rchip g" data-genre="sports">SPORTS</button>
+      <button class="rchip g" data-genre="talk">TALK</button>
+    </div>
+    <select id="rState" aria-label="filter by state"><option value="">📍 ALL STATES</option></select>
+    <div id="rCount"></div>
+    <div id="rList"></div>
+    <div id="rLoading" class="hidden">📡 tuning…</div>
+  </div>
+
+  <!-- ============ JOBS VIEW ============ -->
+  <div class="view" id="viewJobs" style="display:none">
+    <div id="jobsHead">
+      <div id="jobsTitle">💠 JOB BOARD</div>
+      <div id="shardBal">💠 0</div>
+    </div>
+    <p class="cohBlurb">Work jobs to earn star shards 💠 and spend them on gear. Jobs cost energy — a tired Eru can't work.</p>
+    <div class="cohTitle">⛏️ STAR MINING</div>
+    <p class="cohBlurb">Tap rocks to crack them (2⚡ each). Some hide star shards!</p>
+    <div id="mineGrid"></div>
+    <button class="bigbtn" id="btnNewRocks">🪨 NEW ROCKS</button>
+    <div class="cohTitle">🌿 HERB FORAGING</div>
+    <p class="cohBlurb">Tap glowing herbs before they fade · 5⚡ per 30s round.</p>
+    <div id="herbArea"></div>
+    <div class="cohTitle">🛒 EQUIPMENT SHOP</div>
+    <p class="cohBlurb">Gear boosts arena stats. One weapon, one armor, one charm at a time.</p>
+    <div id="gearShop"></div>
+  </div>
+
+</div><!-- /wrap -->
+
+<div id="customSheet" role="dialog" aria-label="customize your Muse">
+  <div id="customBackdrop"></div>
+  <div id="customPanel">
+    <div id="customHead"><span class="t">🎨 CUSTOMIZE ERU</span><button id="customClose" aria-label="close">✕</button></div>
+    <div id="customPreviewWrap"><img id="customPreviewImg" alt="preview"><span id="customPreviewAcc"></span></div>
+    <div id="customPreviewName">ERU</div>
+    <div class="custLabel">COLOR THEME</div>
+    <div id="themeRow" class="custRow"></div>
+    <div class="custLabel">ACCESSORY</div>
+    <div id="accRow" class="custRow"></div>
+    <div class="custLabel">AURA GLOW</div>
+    <div id="auraRow" class="custRow"></div>
+    <div class="custLabel">PET NAME</div>
+    <div id="nameRow">
+      <input id="customNameInput" maxlength="24" autocomplete="off" aria-label="pet name">
+      <button id="customNameSave" aria-label="save name">✓</button>
+    </div>
+    <button class="bigbtn" id="customDone" style="margin-top:14px">✨ DONE</button>
+  </div>
+</div>
+
+<audio id="radioAudio" preload="none"></audio>
+
+<div id="nowPlaying">
+  <div id="npTop">
+    <span id="npLive">● LIVE</span>
+    <div style="flex:1;min-width:0">
+      <div id="npName"></div>
+      <div id="npSub"></div>
+    </div>
+  </div>
+  <div id="npErr"></div>
+  <div id="npControls">
+    <button id="npPlay" aria-label="play pause">⏸</button>
+    <input id="npVol" type="range" min="0" max="100" value="80" aria-label="volume">
+    <button id="npClose" aria-label="stop">✖</button>
+  </div>
+</div>
+
+<nav id="tabBar">
+  <button id="tabPetBtn" class="tabbtn active"><span class="e">🐣</span>PET</button>
+  <button id="tabArenaBtn" class="tabbtn"><span class="e">⚔️</span>ARENA</button>
+  <button id="tabRadioBtn" class="tabbtn"><span class="e">📻</span>RADIO</button>
+  <button id="tabJobsBtn" class="tabbtn"><span class="e">💠</span>JOBS</button>
+</nav>
+
+<script>
+'use strict';
+/* =====================================================================
+   ERU · COSMIC COMPANION v2.0 — clean rewrite
+   Pet + Battle Arena + US Radio. Single file, no dependencies.
+   ===================================================================== */
+/* ---------------- bulletproof DOM helpers ---------------- */
+// Every listener attachment in this file goes through `on()` — one missing
+// element can never kill the rest of the script.
+function el(id) { return document.getElementById(id); }
+function on(id, evt, fn, opts) {
+  try {
+    const e = typeof id === 'string' ? el(id) : id;
+    if (e && e.addEventListener) e.addEventListener(evt, fn, opts || false);
+    return e || null;
+  } catch (err) { return null; }
+}
+// Dual touchend+click binding with double-fire guard. Sound is NEVER part of
+// navigation: callers switch views first, then play sound inside try/catch.
+function onTap(target, fn) {
+  let node = null;
+  try { node = typeof target === 'string' ? el(target) : target; } catch (err) {}
+  if (!node || !node.addEventListener) return null;
+  let last = 0;
+  const fire = function (e) {
+    const now = Date.now();
+    if (now - last < 400) return;   // swallow the ghost click after touchend
+    last = now;
+    if (e && e.cancelable && e.type === 'touchend') { try { e.preventDefault(); } catch (x) {} }
+    try { fn(e); } catch (err) { /* UI must never break */ }
+  };
+  node.addEventListener('touchend', fire, { passive: false });
+  node.addEventListener('click', fire);
+  return node;
+}
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+const pick = function (a) { return a[Math.floor(Math.random() * a.length)]; };
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+/* ---------------- audio: tiny WebAudio bleeps (fully defensive) ---------------- */
+let AC = null;
+function ac() {
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } }
+  try { if (AC && AC.state === 'suspended') AC.resume(); } catch (e) {}
+  return AC;
+}
+function tone(freq, dur, type, when, vol) {
+  try {
+    if (S.muted) return;
+    const c = ac(); if (!c) return;
+    const t = c.currentTime + (when || 0);
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type || 'square'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol || 0.12, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(c.destination);
+    o.start(t); o.stop(t + dur + 0.05);
+  } catch (e) { /* silence is fine */ }
+}
+const SFX = {
+  tap:   function () { tone(660, .07); },
+  feed:  function () { tone(523,.09); tone(659,.09,'square',.09); tone(784,.14,'square',.18); },
+  fav:   function () { tone(523,.08); tone(659,.08,'square',.08); tone(784,.08,'square',.16); tone(1047,.2,'square',.24); },
+  play:  function () { const f=[523,659,784,1047]; for (let i=0;i<f.length;i++) tone(f[i],.1,'triangle',i*.08); },
+  catch: function () { tone(880 + Math.random()*440, .08, 'sine'); },
+  miss:  function () { tone(180, .15, 'sawtooth'); },
+  sleep: function () { tone(392,.15,'sine'); tone(330,.15,'sine',.15); tone(262,.3,'sine',.3); },
+  wake:  function () { tone(262,.12,'sine'); tone(392,.12,'sine',.12); tone(523,.25,'sine',.24); },
+  clean: function () { tone(700,.06,'triangle'); tone(900,.06,'triangle',.07); tone(1100,.1,'triangle',.14); },
+  heal:  function () { tone(523,.12,'sine'); tone(659,.12,'sine',.12); tone(784,.25,'sine',.24); },
+  sick:  function () { tone(220,.2,'sawtooth'); tone(174,.3,'sawtooth',.2); },
+  hatch: function () { const f=[659,784,880,1047,1319]; for (let i=0;i<f.length;i++) tone(f[i],.12,'triangle',i*.09); },
+  stage: function () { const f=[523,659,784]; for (let i=0;i<f.length;i++) tone(f[i],.15,'square',i*.12); },
+  death: function () { const f=[392,330,262,196]; for (let i=0;i<f.length;i++) tone(f[i],.35,'sine',i*.3); },
+  bad:   function () { tone(140, .25, 'sawtooth'); },
+  hit:   function () { tone(196,.12,'square'); tone(147,.15,'square',.06); },
+  win:   function () { const f=[523,659,784,1047,1319,1568]; for (let i=0;i<f.length;i++) tone(f[i],.14,'triangle',i*.1); },
+};
+// Sound wrapper: can never throw, can never block UI.
+function sfx(fn) { try { fn(); } catch (e) {} }
+
+/* ---------------- pet state ---------------- */
+const SAVE_KEY = 'eru-tamagotchi-v1';
+function DEFAULTS() {
+  return {
+    v: 1, name: 'ERU', birth: Date.now(),
+    stats: { hunger: 80, happy: 80, energy: 80, hygiene: 80, health: 100 },
+    sick: false, sleeping: false, poops: 0, muted: false, dead: false,
+    stage: 'egg', lastTick: Date.now(), fedCount: 0
+  };
+}
+let S = DEFAULTS();
+function save() {
+  S.lastTick = Date.now();
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {}
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    if (!d || d.v !== 1) return false;
+    S = Object.assign(DEFAULTS(), d);
+    S.stats = Object.assign(DEFAULTS().stats, d.stats || {});
+    return true;
+  } catch (e) { return false; }
+}
+
+/* ---------------- speech: Eru's voice ---------------- */
+const LINES = {
+  greet: ["Ah, you return. The cosmos missed you. Probably.", "Mortal! You came back. I knew you would.", "Behold — your favorite cosmic being."],
+  cookie: ["Stardust cookies?! You know me too well.", "Crunchy. Cosmic. Perfect. More."],
+  berry: ["A Nebula Berry. Healthy. Suspiciously healthy.", "Tastes like a supernova. A small one."],
+  burger: ["Comet Burger! Messy. Worth it.", "Grease of the gods. Do not judge me."],
+  overfeed: ["More?? I am a cosmic being, not a black hole. ...Fine. One more.", "My robe is getting tight. Worth it."],
+  playStart: ["A game! Catch the stars, mortal. Show me those reflexes.", "Thirty seconds. The stars fall. You catch. Go!"],
+  playGood: ["Magnificent! The stars themselves applaud.", "Such reflexes! You may stay in my universe."],
+  playBad: ["The stars elude you. We train more.", "A valiant effort. A terrible score."],
+  sleep: ["I shall dream of galaxies... Wake me for snacks.", "Do not let the stars burn out while I nap."],
+  wake: ["I have returned from the dream-realm. What did I miss?", "Ah, consciousness. Overrated, but fine."],
+  clean: ["Ahh. Cleanliness is next to starliness.", "Immaculate once more. As it should be."],
+  cleanNone: ["Nothing to clean. I am immaculate, obviously.", "My domain sparkles already."],
+  heal: ["The medicine courses through me... I LIVE AGAIN.", "Cured! My radiance returns."],
+  healWell: ["I'm not sick, mortal. Save it for a real emergency.", "Wasting medicine on a healthy god? Bold."],
+  sick: ["Ugh... the cosmos spins... fetch medicine, quickly.", "I feel... wobbly. This is new. I dislike it."],
+  hungry: ["Feed me, mortal. The stars demand snacks.", "My stomach echoes like the void. FEED IT."],
+  sad: ["Amuse me, or I shall sulk across dimensions.", "Entertain your god, mortal. Chop chop."],
+  sleepy: ["My eyelids weigh as much as neutron stars...", "Even wizards need naps. This is that time."],
+  dirty: ["I... I think something happened back there. CLEAN IT.", "There is a disturbance in my domain. Behind me."],
+  happy: ["All is well in my universe.", "Cared for, fed, fabulous. As prophesied."],
+  hatch: ["I HAVE ARRIVED. Behold — me.", "The egg could no longer contain this much majesty."],
+  teen: ["Behold, I grow! More majestic by the hour.", "Teen wizard era. The glow-up is real."],
+  adult: ["Full cosmic wizard at last. Worship may commence.", "Behold my final form. Try not to stare."],
+  eggIdle: ["...still gestating. Patience, mortal.", "Something stirs within. It's me. I'm the something."],
+  poop: ["...A wild offering has appeared. Clean it, peasant.", "Nature calls, even for gods."]
+};
+let bubbleTimer = 0;
+function say(text, ms) {
+  const b = el('bubble'); if (!b) return;
+  b.textContent = text;
+  b.classList.remove('hidden');
+  try { clearTimeout(bubbleTimer); } catch (e) {}
+  bubbleTimer = setTimeout(function () { const x = el('bubble'); if (x) x.classList.add('hidden'); }, ms || 3200);
+}
+function sayKey(k, ms) { const a = LINES[k]; if (a) say(pick(a), ms); }
+function sparkleBurst(n) {
+  const scr = el('screen'); if (!scr) return;
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle'; s.textContent = '✨';
+    s.style.left = (20 + Math.random() * 60) + '%';
+    s.style.top = (30 + Math.random() * 40) + '%';
+    scr.appendChild(s);
+    (function (node) { setTimeout(function () { if (node.parentNode) node.parentNode.removeChild(node); }, 1500); })(s);
+  }
+}
+/* ---------------- growth stages ---------------- */
+function ageHours() { return (Date.now() - S.birth) / 3600000; }
+function stageFor() {
+  const h = ageHours();
+  if (h < 0.05) return 'egg';   // ~3 min
+  if (h < 24)   return 'baby';
+  if (h < 72)   return 'teen';
+  return 'adult';
+}
+function checkStage() {
+  const ns = stageFor();
+  if (ns !== S.stage) {
+    const prev = S.stage;
+    S.stage = ns;
+    if (prev === 'egg' && ns === 'baby') { sfx(function(){SFX.hatch();}); sparkleBurst(14); sayKey('hatch', 4500); }
+    else if (ns === 'teen') { sfx(function(){SFX.stage();}); sparkleBurst(10); sayKey('teen', 4000); }
+    else if (ns === 'adult') { sfx(function(){SFX.stage();}); sparkleBurst(16); sayKey('adult', 4500); }
+    save();
+  }
+}
+
+/* ---------------- mood ---------------- */
+function mood() {
+  if (S.sick) return 'sick';
+  if (S.sleeping) return 'sleepy';
+  const t = S.stats;
+  if (t.hunger <= 25 || t.happy <= 25) return 'sad';
+  if (t.energy <= 25) return 'sleepy';
+  if (t.happy > 70 && t.hunger > 60) return 'happy';
+  return 'neutral';
+}
+const MOOD_BADGE = { sick: '🤢', sleepy: '😴', sad: '😢', happy: '😊', neutral: '' };
+
+/* ---------------- decay engine (1 tick = 1s, rates per minute) ---------------- */
+function applyDecay(minutes) {
+  const t = S.stats;
+  if (S.dead || S.stage === 'egg') return;
+  const m = minutes, asleep = S.sleeping, sickMul = S.sick ? 2 : 1;
+  t.hunger  -= (asleep ? 0.28 : 0.55) * m;
+  t.happy   -= (asleep ? 0.15 : 0.45) * sickMul * m;
+  t.energy  += asleep ? (2.4 * m) : (-0.35 * sickMul * m);
+  t.hygiene -= (0.40 + 0.55 * S.poops) * m;
+  let dh = 0;
+  if (t.hunger <= 0) dh -= 0.9 * m;
+  if (t.happy <= 0)  dh -= 0.5 * m;
+  if (S.sick)        dh -= 0.7 * m;
+  if (dh === 0 && t.hunger > 40 && t.happy > 40 && t.hygiene > 40 && t.energy > 20) dh += 0.9 * m;
+  t.health += dh;
+  const keys = ['hunger', 'happy', 'energy', 'hygiene', 'health'];
+  for (let i = 0; i < keys.length; i++) t[keys[i]] = clamp(t[keys[i]], 0, 100);
+  if (!S.sick && ((t.hygiene <= 15 && S.poops > 0) || (t.hunger <= 0 && t.happy <= 0))) {
+    if (Math.random() < 0.012 * m) { S.sick = true; sfx(function(){SFX.sick();}); sayKey('sick', 4500); }
+  }
+  if (!asleep && S.poops < 4 && Math.random() < 0.0011 * m) {
+    S.poops++; renderPoops(); sayKey('poop', 3500);
+  }
+  if (t.health <= 0) die();
+}
+
+/* ---------------- death & rebirth ---------------- */
+function die() {
+  if (S.dead) return;
+  S.dead = true; sfx(function(){SFX.death();});
+  const t = el('ovTitle'), x = el('ovText'), b = el('ovBtn'), o = el('overlay');
+  if (t) t.textContent = '🌌 THE STARS RECLAIM ME 🌌';
+  if (x) x.textContent = '...until you summon me again. I was fabulous while it lasted. No regrets. Well — maybe feed the next me a little sooner.';
+  if (b) b.textContent = '✨ SUMMON ERU AGAIN';
+  if (o) o.classList.remove('hidden');
+  save();
+}
+function rebirth() {
+  const muted = S.muted, name = S.name;
+  S = DEFAULTS(); S.muted = muted; S.name = name;
+  const o = el('overlay'), e = el('egg');
+  if (o) o.classList.add('hidden');
+  if (e) e.classList.remove('cracking');
+  save(); renderAll();
+  sfx(function(){SFX.hatch();}); sparkleBurst(10);
+  say("A new egg. A new eternity. Let's do this properly this time.", 4500);
+}
+
+/* ---------------- actions ---------------- */
+const FOODS = {
+  cookie: { hunger: 18, happy: 14, energy: 2, hygiene: 0,  line: 'cookie', fav: true },
+  berry:  { hunger: 12, happy: 5,  energy: 3, hygiene: 2,  line: 'berry' },
+  burger: { hunger: 26, happy: 5,  energy: 4, hygiene: -7, line: 'burger' }
+};
+function feed(kind) {
+  if (S.dead || gameOn) return;
+  if (S.stage === 'egg') { sfx(function(){SFX.bad();}); sayKey('eggIdle'); return; }
+  if (S.sleeping) { sfx(function(){SFX.bad();}); say('Not while I dream of snacks. Wake me first.'); return; }
+  const f = FOODS[kind]; if (!f) return;
+  const t = S.stats;
+  if (t.hunger > 92) { sfx(function(){SFX.bad();}); sayKey('overfeed'); return; }
+  t.hunger = clamp(t.hunger + f.hunger, 0, 100);
+  t.happy = clamp(t.happy + f.happy, 0, 100);
+  t.energy = clamp(t.energy + f.energy, 0, 100);
+  t.hygiene = clamp(t.hygiene + f.hygiene, 0, 100);
+  S.fedCount++;
+  const w = el('petBox'); if (w) { w.classList.add('eating'); setTimeout(function(){ const x = el('petBox'); if (x) x.classList.remove('eating'); }, 1100); }
+  sfx(function(){ if (f.fav) SFX.fav(); else SFX.feed(); });
+  sparkleBurst(5); sayKey(f.line);
+  const fm = el('foodMenu'); if (fm) fm.classList.add('hidden');
+  save(); renderStats();
+}
+function toggleSleep() {
+  if (S.dead || gameOn) return;
+  if (S.stage === 'egg') { sfx(function(){SFX.bad();}); sayKey('eggIdle'); return; }
+  S.sleeping = !S.sleeping;
+  const bz = el('btnSleep');
+  if (bz) {
+    const e = bz.querySelector('.e'), tt = bz.querySelector('.t');
+    if (S.sleeping) { sfx(function(){SFX.sleep();}); sayKey('sleep'); if (e) e.textContent = '🌅'; if (tt) tt.textContent = 'WAKE'; }
+    else { sfx(function(){SFX.wake();}); sayKey('wake'); if (e) e.textContent = '😴'; if (tt) tt.textContent = 'SLEEP'; }
+  }
+  save(); renderAll();
+}
+function clean() {
+  if (S.dead || gameOn) return;
+  if (S.sleeping) { sfx(function(){SFX.bad();}); say('Cleaning while I sleep?? Bold. Rude.'); return; }
+  if (S.poops > 0) {
+    S.poops = 0; S.stats.hygiene = clamp(S.stats.hygiene + 30, 0, 100);
+    sfx(function(){SFX.clean();}); sparkleBurst(8); sayKey('clean'); renderPoops();
+  } else {
+    S.stats.hygiene = clamp(S.stats.hygiene + 3, 0, 100);
+    sfx(function(){SFX.tap();}); sayKey('cleanNone');
+  }
+  save(); renderStats();
+}
+function heal() {
+  if (S.dead || gameOn) return;
+  if (S.sick) {
+    S.sick = false; S.stats.health = clamp(S.stats.health + 15, 0, 100);
+    sfx(function(){SFX.heal();}); sparkleBurst(10); sayKey('heal');
+  } else { sfx(function(){SFX.tap();}); sayKey('healWell'); }
+  save(); renderAll();
+}
+/* ---------------- mini-game: catch the falling stars ---------------- */
+let gameOn = false, gScore = 0, gStars = [], gLast = 0, gRaf = 0, gEnd = 0;
+function startGame() {
+  if (S.dead) return;
+  if (S.stage === 'egg') { sfx(function(){SFX.bad();}); sayKey('eggIdle'); return; }
+  if (S.sleeping) { sfx(function(){SFX.bad();}); say('Games while I sleep? Wake me, then we play.'); return; }
+  if (S.energy < 12) { sfx(function(){SFX.bad();}); say('Too... tired... nap first, game later.'); return; }
+  gameOn = true; gScore = 0; gStars = [];
+  const fm = el('foodMenu'); if (fm) fm.classList.add('hidden');
+  const gl = el('gameLayer'); if (gl) gl.classList.remove('hidden');
+  const cv = el('gameCanvas');
+  if (cv) { try { cv.width = cv.clientWidth || 300; cv.height = cv.clientHeight || 300; } catch (e) {} }
+  gEnd = Date.now() + 30000; gLast = Date.now();
+  sfx(function(){SFX.play();}); sayKey('playStart', 2500);
+  const loop = function () { gameLoop(); };
+  if (window.requestAnimationFrame) gRaf = window.requestAnimationFrame(loop); else setTimeout(loop, 16);
+}
+function gameLoop() {
+  if (!gameOn) return;
+  const cv = el('gameCanvas'); if (!cv) { endGame(); return; }
+  let ctx = null; try { ctx = cv.getContext('2d'); } catch (e) {}
+  if (!ctx) { endGame(); return; }
+  const now = Date.now();
+  const dt = Math.min(0.05, (now - gLast) / 1000); gLast = now;
+  const tLeft = Math.max(0, (gEnd - now) / 1000);
+  if (Math.random() < 0.045 + (30 - tLeft) * 0.0012 && gStars.length < 14) {
+    gStars.push({ x: 20 + Math.random() * ((cv.width || 300) - 40), y: -20,
+      vy: 90 + Math.random() * 90 + (30 - tLeft) * 6, r: 14 + Math.random() * 8, tw: Math.random() * 6.28 });
+  }
+  ctx.clearRect(0, 0, cv.width || 300, cv.height || 300);
+  for (let i = gStars.length - 1; i >= 0; i--) {
+    const s = gStars[i];
+    s.y += s.vy * dt; s.tw += dt * 6;
+    if (s.y > (cv.height || 300) + 30) { gStars.splice(i, 1); sfx(function(){SFX.miss();}); continue; }
+    const pulse = 1 + Math.sin(s.tw) * 0.15;
+    try {
+      ctx.font = (s.r * 2 * pulse) + 'px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('⭐', s.x, s.y);
+    } catch (e) {}
+  }
+  const gs = el('gameScore'), gt = el('gameTime');
+  if (gs) gs.textContent = '⭐ ' + gScore;
+  if (gt) gt.textContent = '⏱ ' + Math.ceil(tLeft);
+  if (tLeft <= 0) { endGame(); return; }
+  const loop = function () { gameLoop(); };
+  if (window.requestAnimationFrame) gRaf = window.requestAnimationFrame(loop); else setTimeout(loop, 16);
+}
+function gameTap(ev) {
+  if (!gameOn) return;
+  try { if (ev && ev.preventDefault) ev.preventDefault(); } catch (e) {}
+  const cv = el('gameCanvas'); if (!cv) return;
+  let r = { left: 0, top: 0 };
+  try { r = cv.getBoundingClientRect(); } catch (e) {}
+  const p = (ev && ev.touches && ev.touches[0]) ? ev.touches[0] : (ev || {});
+  const x = (p.clientX || 0) - r.left, y = (p.clientY || 0) - r.top;
+  for (let i = gStars.length - 1; i >= 0; i--) {
+    const s = gStars[i], dx = s.x - x, dy = s.y - y, rr = s.r * 2.2;
+    if (dx * dx + dy * dy < rr * rr) {
+      gStars.splice(i, 1); gScore++;
+      sfx(function(){SFX.catch();}); sparkleBurst(2);
+      const gs = el('gameScore'); if (gs) gs.textContent = '⭐ ' + gScore;
+      return;
+    }
+  }
+}
+function endGame() {
+  gameOn = false;
+  try { if (window.cancelAnimationFrame) window.cancelAnimationFrame(gRaf); } catch (e) {}
+  const gl = el('gameLayer'); if (gl) gl.classList.add('hidden');
+  const t = S.stats;
+  t.happy = clamp(t.happy + Math.min(30, gScore * 2.2), 0, 100);
+  t.energy = clamp(t.energy - 8, 0, 100);
+  t.hunger = clamp(t.hunger - 4, 0, 100);
+  if (gScore >= 12) { sfx(function(){SFX.fav();}); } else { sfx(function(){SFX.tap();}); }
+  say('You caught ' + gScore + ' stars! ' + (gScore >= 12 ? pick(LINES.playGood) : pick(LINES.playBad)), 4000);
+  save(); renderStats();
+}
+
+/* ---------------- rendering ---------------- */
+function renderStats() {
+  const t = S.stats;
+  const rows = [['hunger','st-hunger'],['happy','st-happy'],['energy','st-energy'],['hygiene','st-hygiene'],['health','st-health']];
+  for (let i = 0; i < rows.length; i++) {
+    const k = rows[i][0], rowEl = el(rows[i][1]);
+    if (!rowEl) continue;
+    const v = Math.round(t[k]);
+    const fill = rowEl.querySelector('.fill'), val = rowEl.querySelector('.val');
+    if (fill) fill.style.width = v + '%';
+    if (val) val.textContent = v;
+    rowEl.classList.toggle('low', v < 25);
+  }
+}
+function renderPoops() {
+  const box = el('poops'); if (!box) return;
+  box.innerHTML = '';
+  for (let i = 0; i < S.poops; i++) {
+    const p = document.createElement('div');
+    p.className = 'poop'; p.textContent = '💩';
+    p.style.left = (8 + Math.random() * 72) + '%';
+    p.style.bottom = (4 + Math.random() * 14) + '%';
+    box.appendChild(p);
+  }
+}
+// Sprite box: fixed square, size driven ONLY by stage class -> smooth CSS transition, never distorted.
+const STAGE_SIZE = { baby: '', teen: 'teen', adult: 'adult' };
+function renderScreen() {
+  const w = el('petWrap'); if (!w) return;
+  const md = S.stage === 'egg' ? 'egg' : mood();
+  const box = el('petBox'), egg = el('egg');
+  const hatched = S.stage !== 'egg';
+  if (egg) egg.style.display = hatched ? 'none' : 'block';
+  if (box) {
+    box.style.display = hatched ? 'block' : 'none';
+    box.className = hatched ? (STAGE_SIZE[S.stage] || '') : '';
+    if (md !== 'neutral' && md !== 'egg') box.classList.add(md);
+  }
+  w.classList.toggle('sleepy', md === 'sleepy');
+  w.classList.toggle('sick', md === 'sick');
+  const mb = el('moodBadge'); if (mb) mb.textContent = hatched ? (MOOD_BADGE[md] || '') : '';
+  const zz = el('zzz'); if (zz) zz.classList.toggle('hidden', !S.sleeping);
+  const acc = el('accessory'); if (acc) acc.textContent = currentAccessoryEmoji();
+  const scr = el('screen'); if (scr) scr.classList.toggle('sleeping', S.sleeping);
+  const sa = el('stageAge');
+  if (sa) {
+    const names = { egg: '🥚 Egg', baby: '👶 Baby Wizard', teen: '🧙 Teen Wizard', adult: '🌌 Archwizard' };
+    const day = Math.floor((Date.now() - S.birth) / 86400000) + 1;
+    sa.textContent = (names[S.stage] || S.stage) + ' · Day ' + day;
+  }
+  const pn = el('petName'); if (pn) pn.textContent = S.name;
+}
+function renderAll() { renderStats(); renderPoops(); renderScreen(); }
+
+/* ---------------- ambient life ---------------- */
+let chatterT = 0;
+function ambientChatter() {
+  if (S.dead || gameOn || S.stage === 'egg') return;
+  const b = el('bubble'); if (!b || !b.classList.contains('hidden')) return;
+  const t = S.stats, md = mood();
+  chatterT++;
+  if (chatterT < 45) return;
+  chatterT = 0;
+  if (S.sick) return sayKey('sick');
+  if (md === 'sad') { if (t.hunger <= 25) return sayKey('hungry'); return sayKey('sad'); }
+  if (md === 'sleepy' && !S.sleeping) return sayKey('sleepy');
+  if (t.hygiene <= 25 || S.poops > 0) return sayKey('dirty');
+  if (md === 'happy' && Math.random() < 0.5) return sayKey('happy');
+}
+function blinkTick() {
+  if (S.stage === 'egg' || S.dead) return;
+  const box = el('petBox'); if (!box) return;
+  box.classList.add('blink');
+  setTimeout(function () { const x = el('petBox'); if (x) x.classList.remove('blink'); }, 160);
+}
+function applyOfflineProgress() {
+  const elapsedMin = (Date.now() - S.lastTick) / 60000;
+  if (elapsedMin < 1) return;
+  applyDecay(Math.min(elapsedMin, 720));   // cap offline decay at 12h
+}
+
+/* ---------------- THE tab system: one small auditable function ----------------
+   Sound can never block navigation: the switch happens first, sound after,
+   inside try/catch. Body class AND direct style.display both set. */
+const VIEW_IDS = { pet: 'viewPet', arena: 'viewArena', radio: 'viewRadio', jobs: 'viewJobs' };
+const TAB_IDS  = { pet: 'tabPetBtn', arena: 'tabArenaBtn', radio: 'tabRadioBtn', jobs: 'tabJobsBtn' };
+let currentView = 'pet';
+function showView(which) {
+  if (!VIEW_IDS[which]) which = 'pet';
+  currentView = which;
+  for (const key of Object.keys(VIEW_IDS)) {
+    const node = el(VIEW_IDS[key]);
+    if (node) node.style.display = (key === which) ? 'flex' : 'none';
+    const tab = el(TAB_IDS[key]);
+    if (tab) tab.classList.toggle('active', key === which);
+  }
+  try { document.body.classList.toggle('view-radio', which === 'radio'); } catch (e) {}
+  try { if (which === 'radio') bootRadio(); } catch (e) {}
+  try {
+    if (which === 'jobs') { renderGearShop(); renderShards(); renderHerbs(); renderPower(); }
+  } catch (e) {}
+  try { applyCustom(); } catch (e) {}
+  try { if (typeof window.scrollTo === 'function') window.scrollTo(0, 0); } catch (e) {}
+  try { SFX.tap(); } catch (e) { /* sound must never break navigation */ }
+}
+function bindTabs() {
+  for (const key of Object.keys(TAB_IDS)) {
+    (function (k) {
+      onTap(TAB_IDS[k], function () { showView(k); });
+    })(key);
+  }
+  const bf = el('btnFight');
+  if (bf) onTap(bf, function () { showView('arena'); });
+}
+
+/* ---------------- starfield (capped at 30, transform/opacity only) ---------------- */
+function buildStars() {
+  const scr = el('screen'); if (!scr) return;
+  for (let i = 0; i < 30; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = 1 + Math.random() * 2.6;
+    s.style.width = s.style.height = sz.toFixed(1) + 'px';
+    s.style.left = (Math.random() * 100).toFixed(1) + '%';
+    s.style.top = (Math.random() * 62).toFixed(1) + '%';
+    try { s.style.setProperty('--tw', (1.5 + Math.random() * 3).toFixed(1) + 's'); } catch (e) {}
+    if (Math.random() < 0.2) s.style.background = '#d6ffe0';
+    scr.appendChild(s);
+  }
+}
+/* ================= AVATAR CUSTOMIZATION ================= */
+const CUSTOM_KEY = 'eru-custom-v1';
+const THEMES = [
+  { id: 'cosmic', name: 'Cosmic Green', emoji: '💚', hue: 0, sat: 1 },
+  { id: 'void', name: 'Void Purple', emoji: '💜', hue: 150, sat: 1.3 },
+  { id: 'ember', name: 'Ember Red', emoji: '❤️', hue: 230, sat: 1.4 },
+  { id: 'ocean', name: 'Ocean Blue', emoji: '💙', hue: 110, sat: 1.3 },
+  { id: 'solar', name: 'Solar Gold', emoji: '💛', hue: 290, sat: 1.5 },
+  { id: 'shadow', name: 'Shadow Mono', emoji: '🖤', hue: 0, sat: 0 },
+  { id: 'candy', name: 'Cotton Candy', emoji: '💗', hue: 195, sat: 1.6 }
+];
+const ACCESSORIES = [
+  { id: 'none', emoji: '' }, { id: 'crown', emoji: '👑' }, { id: 'tophat', emoji: '🎩' },
+  { id: 'shades', emoji: '🕶️' }, { id: 'star', emoji: '⭐' }, { id: 'moon', emoji: '🌙' },
+  { id: 'halo', emoji: '😇' }, { id: 'party', emoji: '🥳' }, { id: 'flower', emoji: '🌸' },
+  { id: 'bolt', emoji: '⚡' }
+];
+const AURAS = [
+  { id: 'none', name: 'None', css: '', dot: 'transparent' },
+  { id: 'green', name: 'Green', css: '0 0 26px rgba(31,220,90,.85)', dot: '#1fdc5a' },
+  { id: 'purple', name: 'Purple', css: '0 0 26px rgba(167,139,250,.85)', dot: '#a78bfa' },
+  { id: 'gold', name: 'Gold', css: '0 0 26px rgba(255,215,0,.85)', dot: '#ffd700' },
+  { id: 'blue', name: 'Blue', css: '0 0 26px rgba(59,130,246,.85)', dot: '#3b82f6' },
+  { id: 'red', name: 'Red', css: '0 0 26px rgba(239,68,68,.85)', dot: '#ef4444' }
+];
+function defaultCustom() { return { theme: 'cosmic', accessory: 'none', aura: 'green' }; }
+function loadCustom() {
+  try {
+    const raw = localStorage.getItem(CUSTOM_KEY);
+    if (!raw) return defaultCustom();
+    const c = JSON.parse(raw), d = defaultCustom();
+    return {
+      theme: typeof c.theme === 'string' ? c.theme : d.theme,
+      accessory: typeof c.accessory === 'string' ? c.accessory : d.accessory,
+      aura: typeof c.aura === 'string' ? c.aura : d.aura
+    };
+  } catch (e) { return defaultCustom(); }
+}
+let custom = loadCustom();
+function saveCustom() { try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(custom)); } catch (e) {} }
+function themeById(id) { for (let i = 0; i < THEMES.length; i++) if (THEMES[i].id === id) return THEMES[i]; return THEMES[0]; }
+function accessoryById(id) { for (let i = 0; i < ACCESSORIES.length; i++) if (ACCESSORIES[i].id === id) return ACCESSORIES[i]; return ACCESSORIES[0]; }
+function auraById(id) { for (let i = 0; i < AURAS.length; i++) if (AURAS[i].id === id) return AURAS[i]; return AURAS[1]; }
+function themeFilter() {
+  const t = themeById(custom.theme);
+  if (t.id === 'shadow') return 'saturate(0)';
+  if (t.hue === 0 && t.sat === 1) return '';
+  return 'hue-rotate(' + t.hue + 'deg) saturate(' + t.sat + ')';
+}
+function stageAccessory() { return S.stage === 'teen' ? '✨' : (S.stage === 'adult' ? '👑' : ''); }
+function currentAccessoryEmoji() {
+  const a = accessoryById(custom.accessory);
+  return a.emoji || stageAccessory();
+}
+function sanitizeName(s, fallback) {
+  s = String(s == null ? '' : s).replace(/[\x00-\x1f\x7f<>]/g, '').trim().replace(/\s+/g, ' ');
+  if (s.length > 24) s = s.slice(0, 24).trim();
+  return s || (fallback === undefined ? 'Nameless Muse' : fallback);
+}
+function applyCustom() {
+  try {
+    const f = themeFilter(), accEmoji = currentAccessoryEmoji(), aura = auraById(custom.aura);
+    const box = el('petBox');
+    if (box) { box.style.filter = f; box.style.boxShadow = aura.css; }
+    const pf = el('petFightImg'); if (pf) pf.style.filter = f;
+    const pv = el('customPreviewImg'); if (pv) pv.style.filter = f;
+    const pvw = el('customPreviewWrap'); if (pvw) pvw.style.boxShadow = aura.css;
+    const acc = el('accessory'); if (acc) acc.textContent = accEmoji;
+    const fa = el('fightAcc'); if (fa) fa.textContent = accEmoji;
+    const pa = el('customPreviewAcc'); if (pa) pa.textContent = accEmoji;
+    const pn = el('customPreviewName'); if (pn) pn.textContent = S.name || 'ERU';
+  } catch (e) {}
+}
+function renderCustomRows() {
+  const mark = function (boxId, items, getId, label) {
+    const box = el(boxId); if (!box) return;
+    box.innerHTML = '';
+    for (const it of items) {
+      const b = document.createElement('button');
+      b.className = 'custbtn' + (getId() === it.id ? ' sel' : '');
+      label(b, it);
+      (function (id) {
+        b.addEventListener('click', function () {
+          if (boxId === 'themeRow') custom.theme = id;
+          else if (boxId === 'accRow') custom.accessory = id;
+          else custom.aura = id;
+          saveCustom(); applyCustom(); renderCustomRows();
+          sfx(function(){SFX.tap();});
+        });
+      })(it.id);
+      box.appendChild(b);
+    }
+  };
+  mark('themeRow', THEMES, function () { return custom.theme; }, function (b, t) {
+    const em = document.createElement('span'); em.textContent = t.emoji;
+    const nm = document.createElement('span'); nm.textContent = t.name;
+    b.appendChild(em); b.appendChild(nm);
+  });
+  mark('accRow', ACCESSORIES, function () { return custom.accessory; }, function (b, a) {
+    b.textContent = a.emoji || '🚫'; b.title = a.id;
+  });
+  mark('auraRow', AURAS, function () { return custom.aura; }, function (b, u) {
+    const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = u.dot;
+    if (u.id === 'none') dot.style.border = '1px solid #14532a';
+    const nm = document.createElement('span'); nm.textContent = u.name;
+    b.appendChild(dot); b.appendChild(nm);
+  });
+}
+function openCustomSheet() {
+  const sh = el('customSheet'); if (!sh) return;
+  const pv = el('customPreviewImg'), pi = el('petImg');
+  if (pv && pi) pv.src = pi.src;
+  const ni = el('customNameInput'); if (ni) ni.value = S.name || 'ERU';
+  renderCustomRows(); applyCustom();
+  sh.classList.add('open');
+  sfx(function(){SFX.tap();});
+}
+function closeCustomSheet() { const sh = el('customSheet'); if (sh) sh.classList.remove('open'); }
+function saveCustomName() {
+  const ni = el('customNameInput'); if (!ni) return;
+  S.name = sanitizeName(ni.value, 'ERU');
+  save();
+  const pn = el('petName'); if (pn) pn.textContent = S.name;
+  applyCustom();
+  say('Your Muse is now called ' + S.name + '!', 2500);
+  sfx(function(){SFX.feed();});
+}
+function bindCustom() {
+  onTap('btnCustomize', openCustomSheet);
+  onTap('customClose', closeCustomSheet);
+  onTap('customDone', closeCustomSheet);
+  onTap('customBackdrop', closeCustomSheet);
+  onTap('customNameSave', saveCustomName);
+}
+/* ================= COHESION: shareable fighter cards ================= */
+const RIVALS_KEY = 'eru-rivals-v1';
+function nameHash(s) {
+  let h = 7; s = String(s);
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+function fighterTitle() {
+  return S.stage === 'adult' ? 'Archwizard' : (S.stage === 'teen' ? 'Teen Wizard' : (S.stage === 'baby' ? 'Baby Wizard' : 'Cosmic Egg'));
+}
+function exportFighterCode() {
+  try {
+    const nm = sanitizeName(S.name || 'ERU', 'ERU');
+    const t = themeById(custom.theme);
+    const accCustom = accessoryById(custom.accessory).emoji;
+    const acc = accCustom || stageAccessory() || ['🌌', '⭐', '🌠', '💫', '🔮'][nameHash(nm) % 5];
+    const bs = petBattleStats();
+    const card = {
+      v: 1, name: nm,
+      hue: t.hue, sat: t.sat,
+      accessory: acc,
+      atk: bs.atk, hp: bs.hp, crit: bs.crit,
+      wins: arenaRecord().w,
+      title: fighterTitle()
+    };
+    const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(card))))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    return b64.length <= 300 ? b64 : null;
+  } catch (e) { return null; }
+}
+function decodeRivalCode(code) {
+  try {
+    code = String(code == null ? '' : code).trim();
+    if (!code) return { ok: false, err: 'Paste a Muse code into the box first.' };
+    if (code.length > 400) return { ok: false, err: 'That code is too long — Muse codes are short. Check for extra text.' };
+    if (!/^[A-Za-z0-9\-_]+$/.test(code)) return { ok: false, err: 'Invalid characters. Muse codes only use letters, numbers, - and _.' };
+    let b64 = code.replace(/-/g, '+').replace(/_/g, '/');
+    const pad = b64.length % 4;
+    if (pad) b64 += '===='.slice(pad);
+    let json;
+    try { json = decodeURIComponent(escape(atob(b64))); }
+    catch (e) { return { ok: false, err: 'Couldn\'t decode that code — check for typos.' }; }
+    let c;
+    try { c = JSON.parse(json); }
+    catch (e) { return { ok: false, err: 'That code isn\'t a fighter card.' }; }
+    if (!c || typeof c !== 'object' || Array.isArray(c) || c.v !== 1)
+      return { ok: false, err: 'Not a v1 Muse fighter card.' };
+    if (typeof c.name !== 'string' || !c.name.trim())
+      return { ok: false, err: 'Card is missing a fighter name.' };
+    for (const k of ['hue', 'sat', 'atk', 'hp', 'crit']) {
+      if (typeof c[k] !== 'number' || !isFinite(c[k]))
+        return { ok: false, err: 'Card has a bad ' + k + ' value.' };
+    }
+    const name = sanitizeName(c.name);
+    const hue = ((Math.round(c.hue) % 360) + 360) % 360;
+    const sat = clamp(Math.round(c.sat * 100) / 100, 0.5, 2.5);
+    const atk = clamp(Math.round(c.atk * 10) / 10, 1, 30);
+    const hp = clamp(Math.round(c.hp), 20, 200);
+    const crit = clamp(Math.round(c.crit * 1000) / 1000, 0, 0.6);
+    const wins = clamp(Math.floor(Number(c.wins) || 0), 0, 99999);
+    const acc = (Array.from(String(c.accessory == null ? '' : c.accessory)).slice(0, 2).join('')) || '🌌';
+    const title = sanitizeName(String(c.title == null ? '' : c.title), '').slice(0, 30) || 'Shared Muse';
+    const card = {
+      id: 'rv' + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36),
+      name: name, acc: acc,
+      filter: 'hue-rotate(' + hue + 'deg) saturate(' + sat + ')',
+      hp: hp, atk: atk, crit: crit, wins: wins, title: title,
+      taunt: 'A legend from another screen! Tremble!',
+      blurb: title + ' · shared Muse',
+      rival: true
+    };
+    return { ok: true, card: card };
+  } catch (e) {
+    return { ok: false, err: 'Something went wrong reading that code.' };
+  }
+}
+function validRival(r) {
+  return r && typeof r === 'object' &&
+    typeof r.id === 'string' && typeof r.name === 'string' &&
+    typeof r.hp === 'number' && typeof r.atk === 'number' && typeof r.crit === 'number';
+}
+function loadRivals() {
+  try {
+    const raw = localStorage.getItem(RIVALS_KEY);
+    if (!raw) return [];
+    const a = JSON.parse(raw);
+    if (!Array.isArray(a)) return [];
+    return a.filter(validRival).slice(0, 50);
+  } catch (e) { return []; }
+}
+function saveRivals(list) {
+  try { localStorage.setItem(RIVALS_KEY, JSON.stringify(list.slice(0, 50))); } catch (e) {}
+}
+let selectedFoeId = 'random';
+function allOpponents() {
+  const all = [{ id: 'random', name: '🎲 Random Rival', acc: '🎲', filter: '', blurb: 'Fate chooses your foe', ai: true }];
+  for (const f of FOES) all.push(f);
+  const rivals = loadRivals();
+  for (const r of rivals) all.push(r);
+  return all;
+}
+function renderFoePicker() {
+  const box = el('foePicker'); if (!box) return;
+  box.innerHTML = '';
+  const pi = el('petImg');
+  for (const f of allOpponents()) {
+    const row = document.createElement('div');
+    row.className = 'foerow' + (selectedFoeId === f.id ? ' sel' : '');
+    row.setAttribute('role', 'button');
+    const av = document.createElement('div'); av.className = 'av';
+    const img = document.createElement('img');
+    if (pi) img.src = pi.src;
+    img.alt = '';
+    if (f.filter) img.style.filter = f.filter;
+    const ac = document.createElement('span'); ac.className = 'facc'; ac.textContent = f.acc || '⚔️';
+    av.appendChild(img); av.appendChild(ac);
+    const meta = document.createElement('div'); meta.style.cssText = 'flex:1;min-width:0';
+    const nm = document.createElement('div'); nm.className = 'fname'; nm.textContent = f.name;
+    const sb = document.createElement('div'); sb.className = 'fsub';
+    sb.textContent = f.rival ? (f.title + ' · shared Muse · ' + f.wins + ' wins') : (f.blurb || '');
+    meta.appendChild(nm); meta.appendChild(sb);
+    if (f.id !== 'random') {
+      const st = document.createElement('div'); st.className = 'fsub';
+      st.textContent = 'HP ' + f.hp + ' · ATK ' + f.atk + ' · CRIT ' + Math.round(f.crit * 100) + '%';
+      meta.appendChild(st);
+    }
+    row.appendChild(av); row.appendChild(meta);
+    if (f.rival) {
+      const x = document.createElement('button');
+      x.className = 'rx'; x.textContent = '✕'; x.setAttribute('aria-label', 'remove rival');
+      (function (id) {
+        x.addEventListener('click', function (ev) { if (ev.stopPropagation) ev.stopPropagation(); removeRival(id); });
+      })(f.id);
+      row.appendChild(x);
+    }
+    (function (id) {
+      row.addEventListener('click', function () { selectedFoeId = id; renderFoePicker(); sfx(function(){SFX.tap();}); });
+    })(f.id);
+    box.appendChild(row);
+  }
+}
+function removeRival(id) {
+  const list = loadRivals().filter(function (r) { return r.id !== id; });
+  saveRivals(list);
+  if (selectedFoeId === id) selectedFoeId = 'random';
+  renderFoePicker();
+  say('Rival dismissed. The arena forgets.', 2500);
+}
+function bindCohesion() {
+  onTap('btnShareMuse', function () {
+    const code = exportFighterCode();
+    const box = el('shareBox'), ta = el('shareCode');
+    if (!code) {
+      say('Couldn\'t build your share code right now.', 3000);
+      return;
+    }
+    if (ta) ta.value = code;
+    if (box) box.style.display = 'block';
+    const note = el('copyNote'); if (note) note.style.display = 'none';
+    sfx(function(){SFX.tap();});
+    try { if (ta) ta.scrollIntoView({ block: 'nearest' }); } catch (e) {}
+  });
+  onTap('btnCopyCode', function () {
+    const ta = el('shareCode'); if (!ta || !ta.value) return;
+    const done = function () {
+      const n = el('copyNote'); if (n) n.style.display = 'block';
+      sfx(function(){SFX.feed();});
+    };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(ta.value).then(done, function () { fallbackCopy(ta); done(); });
+      } else { fallbackCopy(ta); done(); }
+    } catch (e) { try { fallbackCopy(ta); } catch (x) {} done(); }
+  });
+  onTap('btnAddRival', function () {
+    const inp = el('rivalCodeInput'), err = el('rivalErr');
+    const res = decodeRivalCode(inp ? inp.value : '');
+    if (!res.ok) {
+      if (err) { err.textContent = res.err; err.style.display = 'block'; }
+      sfx(function(){SFX.bad();});
+      return;
+    }
+    if (err) err.style.display = 'none';
+    const list = loadRivals();
+    let replaced = false;
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].name === res.card.name) { res.card.id = list[i].id; list[i] = res.card; replaced = true; break; }
+    }
+    if (!replaced) list.push(res.card);
+    saveRivals(list);
+    if (inp) inp.value = '';
+    selectedFoeId = res.card.id;
+    renderFoePicker();
+    say('A new rival joins the arena: ' + res.card.name, 3500);
+    sfx(function(){SFX.win();});
+  });
+}
+function fallbackCopy(ta) {
+  try { ta.focus(); ta.select(); document.execCommand('copy'); } catch (e) {}
+}
+/* ================= A3: TRAINING · JOBS · GEAR ================= */
+const A3_KEY = 'eru-a3-v1';
+const GEAR = [
+  { id: 'blade', slot: 'weapon', name: 'Comet Blade', emoji: '🗡️', cost: 40, desc: '+3 ATK', atk: 3, hp: 0, crit: 0 },
+  { id: 'shield', slot: 'armor', name: 'Nebula Shield', emoji: '🛡️', cost: 40, desc: '+25 HP', atk: 0, hp: 25, crit: 0 },
+  { id: 'charm', slot: 'charm', name: 'Lucky Star Charm', emoji: '🍀', cost: 60, desc: '+8% crit', atk: 0, hp: 0, crit: 0.08 }
+];
+const TRAIN_LINES = [
+  'Eru does star-pushups! One… two… the cosmos counts along. 💪',
+  'Shadow-boxing with moonbeams. The moonbeams are losing. 🌙',
+  'Eru lifts a small asteroid. Form is… debatable. Power is real. ☄️',
+  'Sparring with a training comet. The comet filed a complaint. 💫',
+  'Meditation under a supernova. Gains are both spiritual and physical. ✨',
+  'Eru juggles three meteors. Dropped one. It\'s fine. Probably. 🔥'
+];
+function defaultA3() {
+  return { power: { level: 1, xp: 0 }, shards: 0, owned: {}, equipped: { weapon: null, armor: null, charm: null } };
+}
+function loadA3() {
+  try {
+    const raw = localStorage.getItem(A3_KEY);
+    if (!raw) return defaultA3();
+    const a = JSON.parse(raw), d = defaultA3();
+    const pl = (a.power && a.power.level), px = (a.power && a.power.xp);
+    return {
+      power: { level: Math.max(1, Math.floor(Number(pl) || 1)), xp: Math.max(0, Math.floor(Number(px) || 0)) },
+      shards: Math.max(0, Math.floor(Number(a.shards) || 0)),
+      owned: (a.owned && typeof a.owned === 'object') ? a.owned : {},
+      equipped: Object.assign({}, d.equipped, (a.equipped && typeof a.equipped === 'object') ? a.equipped : {})
+    };
+  } catch (e) { return defaultA3(); }
+}
+let A3 = loadA3();
+function saveA3() { try { localStorage.setItem(A3_KEY, JSON.stringify(A3)); } catch (e) {} }
+function xpForLevel(l) { return l * 60; }
+function gearBonus() {
+  const b = { atk: 0, hp: 0, crit: 0 }, eq = A3.equipped || {};
+  for (const g of GEAR) if (eq[g.slot] === g.id) { b.atk += g.atk; b.hp += g.hp; b.crit += g.crit; }
+  return b;
+}
+function powerBonus() { return { atk: A3.power.level * 0.5, hp: A3.power.level * 2 }; }
+function petBattleStats() {
+  const gb = gearBonus(), pb = powerBonus();
+  return {
+    atk: Math.round((petAtkBase() + gb.atk + pb.atk) * 10) / 10,
+    hp: 40 + Math.round(S.stats.energy) + Math.round(gb.hp + pb.hp),
+    crit: clamp(Math.round((S.stats.happy / 400 + gb.crit) * 1000) / 1000, 0, 0.9)
+  };
+}
+function renderPower() {
+  const b = el('powerBadge');
+  if (b) b.textContent = '⚡ PL ' + A3.power.level;
+}
+function renderShards() {
+  const s = el('shardBal');
+  if (s) s.textContent = '💠 ' + A3.shards;
+}
+function addShards(n) {
+  A3.shards = Math.max(0, A3.shards + Math.floor(n));
+  saveA3(); renderShards();
+}
+function trainPet() {
+  if (S.stage === 'egg') { say('The egg wobbles… training must wait for hatching!', 3000); return false; }
+  if (S.stats.energy < 10) { say('Eru is too tired to train. Feed or rest first!', 3000); sfx(function(){SFX.bad();}); return false; }
+  S.stats.energy = clamp(S.stats.energy - 10, 0, 100);
+  const gain = 18 + Math.floor(Math.random() * 12);
+  A3.power.xp += gain;
+  let ups = 0;
+  while (A3.power.xp >= xpForLevel(A3.power.level)) {
+    A3.power.xp -= xpForLevel(A3.power.level);
+    A3.power.level++; ups++;
+  }
+  save(); saveA3(); renderStats(); renderPower();
+  const box = el('petBox');
+  if (box) { box.classList.remove('train'); try { void box.offsetWidth; } catch (e) {} box.classList.add('train'); }
+  try { sparkleBurst(ups ? 16 : 8); } catch (e) {}
+  if (ups > 0) {
+    say('⚡ POWER UP! Eru reached Power Level ' + A3.power.level + '! Arena stats boosted!', 4500);
+    sfx(function(){SFX.win();});
+  } else {
+    const need = xpForLevel(A3.power.level);
+    say(pick(TRAIN_LINES) + ' (+' + gain + ' XP · ' + A3.power.xp + '/' + need + ')', 3500);
+    sfx(function(){SFX.hit();});
+  }
+  return true;
+}
+/* ---- mining mini-game ---- */
+let mineRocks = [];
+function newMineField() {
+  mineRocks = [];
+  for (let i = 0; i < 9; i++) {
+    const r = Math.random();
+    mineRocks.push({
+      cracked: false,
+      loot: r < 0.10 ? 5 + Math.floor(Math.random() * 6) : (r < 0.40 ? 1 + Math.floor(Math.random() * 3) : 0)
+    });
+  }
+  renderMine();
+}
+function renderMine() {
+  const g = el('mineGrid'); if (!g) return;
+  g.innerHTML = '';
+  for (let i = 0; i < mineRocks.length; i++) {
+    (function (idx) {
+      const rock = mineRocks[idx];
+      const b = document.createElement('button');
+      b.className = 'rockbtn' + (rock.cracked ? ' cracked' : '');
+      b.textContent = rock.cracked ? (rock.loot > 0 ? '💠' : '💨') : '🪨';
+      b.setAttribute('aria-label', 'rock ' + (idx + 1));
+      if (!rock.cracked) b.addEventListener('click', function () { digRock(idx); });
+      g.appendChild(b);
+    })(i);
+  }
+}
+function digRock(i) {
+  const rock = mineRocks[i];
+  if (!rock || rock.cracked) return false;
+  if (S.stats.energy < 2) { say('Eru is too tired to dig. Feed or rest first!', 3000); sfx(function(){SFX.bad();}); return false; }
+  S.stats.energy = clamp(S.stats.energy - 2, 0, 100);
+  rock.cracked = true;
+  if (rock.loot > 0) {
+    addShards(rock.loot);
+    say('💠 Struck ' + rock.loot + ' star shards!', 2500);
+    sfx(function(){SFX.feed();});
+  } else {
+    say('Just space dust… 💨', 2000);
+  }
+  save(); renderStats(); renderMine();
+  return true;
+}
+/* ---- herb foraging mini-game ---- */
+let herbGame = null, herbSlots = [];
+function renderHerbs() {
+  const area = el('herbArea'); if (!area) return;
+  area.innerHTML = '';
+  if (!herbGame) {
+    const b = document.createElement('button');
+    b.className = 'bigbtn'; b.textContent = '🌿 START FORAGING';
+    b.addEventListener('click', startHerbGame);
+    area.appendChild(b);
+    return;
+  }
+  const t = document.createElement('div'); t.id = 'herbTime'; t.textContent = '⏱ ' + herbGame.left + 's';
+  area.appendChild(t);
+  const strip = document.createElement('div'); strip.id = 'herbStrip';
+  for (let i = 0; i < herbSlots.length; i++) {
+    (function (idx) {
+      const s = herbSlots[idx];
+      const b = document.createElement('button');
+      b.className = 'herbbtn' + (s.glow > 0 ? ' glow' : '');
+      b.textContent = s.glow > 0 ? '✨🌿' : '🌿';
+      b.setAttribute('aria-label', 'herb ' + (idx + 1));
+      b.addEventListener('click', function () { pickHerb(idx); });
+      strip.appendChild(b);
+    })(i);
+  }
+  area.appendChild(strip);
+}
+function startHerbGame() {
+  if (herbGame) return false;
+  if (S.stats.energy < 5) { say('Eru is too tired to forage. Feed or rest first!', 3000); sfx(function(){SFX.bad();}); return false; }
+  S.stats.energy = clamp(S.stats.energy - 5, 0, 100);
+  save(); renderStats();
+  herbSlots = [];
+  for (let i = 0; i < 6; i++) herbSlots.push({ glow: 0 });
+  herbGame = { left: 30, found: 0, timer: null };
+  renderHerbs();
+  try {
+    herbGame.timer = setInterval(herbTick, 1000);
+  } catch (e) { herbGame.timer = null; }
+  say('🌿 Forage! Tap glowing herbs before they fade!', 2500);
+  return true;
+}
+function herbTick() {
+  if (!herbGame) return;
+  herbGame.left--;
+  let changed = false;
+  for (const s of herbSlots) {
+    if (s.glow > 0) { s.glow--; if (s.glow === 0) changed = true; }
+    else if (Math.random() < 0.30) { s.glow = 3; changed = true; }
+  }
+  if (herbGame.left <= 0) { endHerbGame(); return; }
+  const t = el('herbTime'); if (t) t.textContent = '⏱ ' + herbGame.left + 's';
+  if (changed) renderHerbs();
+}
+function pickHerb(i) {
+  const s = herbSlots[i];
+  if (!s || s.glow <= 0 || !herbGame) return false;
+  s.glow = 0;
+  herbGame.found++;
+  addShards(2);
+  sfx(function(){SFX.tap();});
+  renderHerbs();
+  return true;
+}
+function endHerbGame() {
+  if (!herbGame) return;
+  try { if (herbGame.timer) clearInterval(herbGame.timer); } catch (e) {}
+  const found = herbGame.found || 0;
+  herbGame = null;
+  say('Foraging done! ' + found + ' herbs → +' + (found * 2) + '💠', 3500);
+  renderHerbs();
+}
+/* ---- equipment shop ---- */
+function renderGearShop() {
+  const box = el('gearShop'); if (!box) return;
+  box.innerHTML = '';
+  for (const g of GEAR) {
+    const row = document.createElement('div'); row.className = 'foerow';
+    const em = document.createElement('div'); em.style.fontSize = '30px'; em.textContent = g.emoji;
+    const meta = document.createElement('div'); meta.style.cssText = 'flex:1;min-width:0';
+    const nm = document.createElement('div'); nm.className = 'fname'; nm.textContent = g.name;
+    const sb = document.createElement('div'); sb.className = 'fsub'; sb.textContent = g.desc + ' · ' + g.cost + '💠';
+    meta.appendChild(nm); meta.appendChild(sb);
+    row.appendChild(em); row.appendChild(meta);
+    const owned = !!A3.owned[g.id], equipped = A3.equipped[g.slot] === g.id;
+    const btn = document.createElement('button');
+    btn.className = 'rx';
+    btn.style.cssText = 'flex:0 0 auto;padding:0 14px;height:44px;border-color:#1fdc5a;color:#7dff9e;font-size:12px;font-weight:bold;';
+    btn.textContent = equipped ? 'UNEQUIP' : (owned ? 'EQUIP' : 'BUY ' + g.cost + '💠');
+    (function (id) { btn.addEventListener('click', function () { gearAction(id); }); })(g.id);
+    row.appendChild(btn);
+    box.appendChild(row);
+  }
+  renderGearBadges();
+}
+function gearAction(id) {
+  let g = null;
+  for (const x of GEAR) if (x.id === id) g = x;
+  if (!g) return false;
+  if (!A3.owned[id]) {
+    if (A3.shards < g.cost) { say('Not enough star shards! Work jobs to earn 💠.', 3000); sfx(function(){SFX.bad();}); return false; }
+    A3.shards -= g.cost;
+    A3.owned[id] = true;
+    say(g.name + ' purchased! ' + g.emoji, 3000);
+    sfx(function(){SFX.win();});
+  } else if (A3.equipped[g.slot] === id) {
+    A3.equipped[g.slot] = null;
+    say(g.name + ' unequipped.', 2500);
+  } else {
+    A3.equipped[g.slot] = id;
+    say(g.name + ' equipped! ' + g.emoji, 3000);
+    sfx(function(){SFX.feed();});
+  }
+  saveA3(); renderGearShop(); renderShards();
+  return true;
+}
+function renderGearBadges() {
+  const b = el('gearBadges'); if (!b) return;
+  const eq = A3.equipped || {};
+  let s = '';
+  for (const g of GEAR) if (eq[g.slot] === g.id) s += g.emoji;
+  b.textContent = s;
+}
+function bindJobs() {
+  onTap('btnNewRocks', function () { newMineField(); sfx(function(){SFX.tap();}); });
+  onTap('btnTrain', trainPet);
+}
+/* ---------------- ⚔️ BATTLE ARENA (fully offline, single-player vs AI) ---------------- */
+const ARENA_KEY = 'eru-arena-v1';
+const FOES = [
+  { id: 'nox',     name: 'Nox the Voidwalker', acc: '🌑', filter: 'hue-rotate(190deg) saturate(0.7) brightness(0.85)',
+    hp: 78,  atk: 10.5, crit: 0.10, taunt: 'Darkness consumes all, little wizard.', blurb: 'brooding void tyrant' },
+  { id: 'lyra',    name: 'Lyra Starchild',     acc: '✨', filter: 'hue-rotate(-40deg) saturate(1.6)',
+    hp: 62,  atk: 12.5, crit: 0.22, taunt: 'Catch me if you can, slowpoke!', blurb: 'mischievous speedster' },
+  { id: 'bramble', name: 'Bramble Thornroot',  acc: '🌿', filter: 'hue-rotate(90deg) saturate(1.2)',
+    hp: 108, atk: 8,    crit: 0.08, taunt: 'I am rooted. You are compost.', blurb: 'immovable tank' },
+  { id: 'comet',   name: 'Captain Comet',      acc: '☄️', filter: 'hue-rotate(-90deg) saturate(1.4) brightness(1.1)',
+    hp: 82,  atk: 11,   crit: 0.15, taunt: 'Full speed ahead! No brakes!', blurb: 'reckless brawler' },
+  { id: 'wisp',    name: 'The Glimmerwisp',    acc: '💫', filter: 'hue-rotate(140deg) saturate(2) brightness(1.15)',
+    hp: 58,  atk: 9,    crit: 0.28, taunt: "Ooh, shiny! ...That's you. You're the shiny.", blurb: 'tricky prankster' }
+];
+const BLOG = {
+  start: ['The arena hums. {foe} steps forward, crackling with spite.', 'A challenger approaches! {foe} twirls menacingly. Probably.'],
+  pAtk: ['You swing a comet at {foe} — {dmg} damage! The crowd (me) goes wild.', 'Starlight slash! {foe} takes {dmg}. Take THAT, cosmos.'],
+  pCrit: ['CRITICAL! The stars align! {dmg} damage to {foe}! I am magnificent.', 'A devastating blow! {foe} reels from {dmg} damage!'],
+  pMiss: ['You swing... and miss. The void dodges. Rude.', 'Whiffed it. Even gods have off days. This was one.'],
+  burst: ['STAR BURST! A supernova in miniature! {dmg} damage! Worth every spark.', 'You detonate pure starlight! {foe} eats {dmg} damage!'],
+  guard: ['You raise a shimmering ward. Bring it on.', 'Guard up! My robe is now 40% shield.'],
+  snack: ['Mid-battle snack break! +{dmg} HP. Tactical deliciousness.', 'You inhale a Stardust Cookie. +{dmg} HP. The foe is disgusted.'],
+  fAtk: ['{foe} hurls a moon rock! You take {dmg} damage. Rude!', '{foe} strikes! {dmg} damage. My robe! My beautiful robe!'],
+  fCrit: ['{foe} lands a vicious hit! {dmg} damage! Okay, now I\'m annoyed.', 'Ouch! {foe} crits for {dmg}! Note to self: dodge more.'],
+  fMiss: ['{foe} swings... MISS! The stars protect you. Obviously.', '{foe} attacks the air where you were. Embarrassing for them.'],
+  fGuard: ['{foe} takes a defensive stance. Cowardice, but effective.', '{foe} guards. How unsporting.'],
+  fTaunt: ['{foe}: "{taunt}"'],
+  blocked: ['Your ward absorbs the blow! Only {dmg} gets through.', 'Blocked! The shield shimmers. {dmg} damage.'],
+  win: ['VICTORY! {foe} dissolves into sparkles. The arena is MINE.', 'Flawless! Well, mostly flawless. {foe} has left the arena.'],
+  lose: ['Defeat... {foe} bows. Rematch? I demand a rematch.', 'You fall, dramatically, in slow motion. The crowd gasps. Mostly me.'],
+  forfeit: ['You forfeit with dignity. Mostly dignity.', 'Tactical retreat! Definitely not running away.']
+};
+function blogLine(key, vars) {
+  const a = BLOG[key]; if (!a) return;
+  let s = pick(a);
+  if (vars) for (const k of Object.keys(vars)) {
+    const v = k === 'dmg'
+      ? '<span class="dmg">' + esc(String(vars[k])) + '</span>'
+      : esc(String(vars[k]));
+    s = s.split('{' + k + '}').join(v);
+  }
+  return s;
+}
+let BT = null;
+function arenaRecord() {
+  let r = { w: 0, l: 0, rw: 0, rl: 0 };
+  try { const raw = localStorage.getItem(ARENA_KEY); if (raw) r = Object.assign(r, JSON.parse(raw)); } catch (e) {}
+  return r;
+}
+function arenaSaveRecord(r) { try { localStorage.setItem(ARENA_KEY, JSON.stringify(r)); } catch (e) {} }
+function renderArenaRecord() {
+  const r = arenaRecord(), n = el('arenaRecord');
+  if (n) {
+    let t = 'WINS ' + r.w + ' · LOSSES ' + r.l;
+    if ((r.rw || 0) + (r.rl || 0) > 0) t += ' · 🤝 RIVALS ' + (r.rw || 0) + '–' + (r.rl || 0);
+    n.textContent = t;
+  }
+}
+function stageMul() { return S.stage === 'adult' ? 1.3 : (S.stage === 'teen' ? 1.15 : 1.0); }
+function petAtkBase() { return (6 + S.stats.hunger / 12) * stageMul(); }
+function canBattle() {
+  if (S.dead) return 'The dead do not duel, mortal.';
+  if (S.stage === 'egg') return 'The egg cannot fight. Patience.';
+  if (S.sleeping) return 'Wake me before glorious combat.';
+  if (S.stats.energy < 8) return 'Too exhausted for battle. Rest first.';
+  return null;
+}
+function startBattle(foeOpt) {
+  const no = canBattle();
+  if (no) { say(no, 3000); sfx(function(){SFX.bad();}); return false; }
+  S.stats.energy = clamp(S.stats.energy - 5, 0, 100);   // entry fee ties into pet care
+  let foe = foeOpt || null;
+  if (!foe) {
+    const pool = allOpponents().filter(function (f) { return f.id !== 'random'; });
+    const sel = pool.filter(function (f) { return f.id === selectedFoeId; })[0];
+    foe = sel || pick(pool);
+  }
+  hideBattleReport();
+  const bs = petBattleStats(); // power level + gear flow into the fight
+  BT = {
+    foe: foe, foeHp: foe.hp, foeMax: foe.hp,
+    petHp: bs.hp, petMax: bs.hp,
+    atk: bs.atk, crit: bs.crit,
+    ep: 20, epMax: 20, guard: false, foeGuard: false, snacks: 2,
+    over: false, winner: null, busy: false, turn: 0,
+    dmgDealt: 0, dmgTaken: 0
+  };
+  const home = el('arenaHome'), fight = el('arenaFight');
+  if (home) home.style.display = 'none';
+  if (fight) fight.style.display = 'block';
+  const fi = el('foeImg'), pi = el('petImg'), pfi = el('petFightImg');
+  const src = pi ? pi.src : '';
+  if (fi) { fi.src = src; fi.style.filter = foe.filter; }
+  if (pfi) { pfi.src = src; }
+  applyCustom(); // fight as your customized self
+  const fa = el('foeAcc'); if (fa) fa.textContent = foe.acc;
+  const fn = el('foeName'); if (fn) fn.textContent = foe.name;
+  const fs = el('foeSub'); if (fs) fs.textContent = foe.blurb + ' · ' + foe.taunt;
+  const ps = el('petFightSub'); if (ps) ps.textContent = 'HP from ⚡ · ATK from 🍖 · crit from 😊';
+  blogSet([blogLine('start', { foe: foe.name }), 'The stars hold their breath…']);
+  renderBattle();
+  sfx(function(){SFX.play();});
+  save(); renderStats();
+  try { window.scrollTo(0, 0); } catch (e) {}
+  return true;
+}
+function blogSet(lines) {
+  const b = el('blog'); if (!b) return;
+  b.innerHTML = '';
+  for (const ln of lines) blogAdd(ln, 'sys');
+}
+function blogAdd(text, cls) {
+  const b = el('blog'); if (!b || text == null) return;
+  const d = document.createElement('div');
+  if (cls) d.className = cls;
+  d.innerHTML = text; // safe: blogLine escapes all vars; other callers pass literals/numbers
+  b.appendChild(d);
+  while (b.children.length > 60) b.removeChild(b.firstChild); // cap: never overflow small screens
+  try { b.scrollTop = b.scrollHeight; } catch (e) {}
+}
+function renderBattle() {
+  if (!BT) return;
+  const set = function (id, v, max) {
+    const n = el(id); if (!n) return;
+    const pct = clamp(100 * v / Math.max(1, max), 0, 100);
+    n.style.width = pct + '%';
+    n.classList.toggle('hurt', pct < 35);
+  };
+  set('foeHp', BT.foeHp, BT.foeMax);
+  set('petHp', BT.petHp, BT.petMax);
+  const ep = el('petEp'); if (ep) ep.style.width = clamp(100 * BT.ep / BT.epMax, 0, 100) + '%';
+  const dis = BT.over || BT.busy;
+  const ids = ['mvAttack', 'mvBurst', 'mvGuard', 'mvSnack', 'btnForfeit'];
+  for (let i = 0; i < ids.length; i++) { const b = el(ids[i]); if (b) b.disabled = !!dis; }
+  const mb = el('mvBurst'); if (mb) mb.disabled = dis || BT.ep < 8;
+  const ms = el('mvSnack'); if (ms) ms.disabled = dis || BT.snacks <= 0;
+}
+function playerMove(kind) {
+  if (!BT || BT.over || BT.busy) return false;
+  const foe = BT.foe, fname = foe.name;
+  BT.turn++;
+  blogAdd('── round ' + BT.turn + ' ──', 'round');
+  if (kind === 'guard') {
+    BT.guard = true;
+    blogAdd(blogLine('guard'), 'me');
+  } else if (kind === 'snack') {
+    if (BT.snacks <= 0) { blogAdd('No snacks left! The pouch is empty.', 'sys'); return false; }
+    BT.snacks--;
+    const heal = Math.round(BT.petMax * 0.35);
+    BT.petHp = Math.min(BT.petMax, BT.petHp + heal);
+    blogAdd(blogLine('snack', { dmg: heal }), 'me');
+    sfx(function(){SFX.feed();});
+  } else {
+    if (kind === 'burst') {
+      if (BT.ep < 8) { blogAdd('Not enough EP for Star Burst!', 'sys'); return false; }
+      BT.ep -= 8;
+    }
+    if (Math.random() < 0.08) {
+      blogAdd(blogLine('pMiss'), 'me');
+    } else {
+      let dmg = BT.atk * (0.85 + Math.random() * 0.3);
+      if (kind === 'burst') dmg *= 1.7;
+      let crit = false;
+      if (Math.random() < BT.crit) { dmg *= 1.75; crit = true; }
+      if (BT.foeGuard) { dmg *= 0.5; BT.foeGuard = false; }
+      dmg = Math.max(1, Math.round(dmg));
+      BT.foeHp = Math.max(0, BT.foeHp - dmg);
+      BT.dmgDealt = (BT.dmgDealt || 0) + dmg;
+      blogAdd(blogLine(kind === 'burst' ? 'burst' : (crit ? 'pCrit' : 'pAtk'), { foe: fname, dmg: dmg }), 'me');
+      sfx(function(){SFX.hit();});
+    }
+  }
+  BT.ep = Math.min(BT.epMax, BT.ep + 4);
+  if (BT.foeHp <= 0) { endBattle(true); return true; }
+  BT.busy = true; renderBattle();
+  setTimeout(foeTurn, 650);
+  return true;
+}
+function foeTurn() {
+  if (!BT || BT.over) return;
+  BT.busy = false;
+  const foe = BT.foe, fname = foe.name;
+  const r = Math.random();
+  if (r < 0.12) {
+    BT.foeGuard = true;
+    blogAdd(blogLine('fGuard', { foe: fname }), 'foe');
+  } else if (r < 0.20) {
+    blogAdd(blogLine('fTaunt', { foe: fname, taunt: foe.taunt }), 'foe');
+  } else {
+    if (Math.random() < 0.08) {
+      blogAdd(blogLine('fMiss', { foe: fname }), 'foe');
+    } else {
+      let dmg = foe.atk * (0.85 + Math.random() * 0.3);
+      const power = r >= 0.62 && r < 0.74;
+      if (power) dmg *= 1.35;
+      const crit = Math.random() < foe.crit;
+      if (crit) dmg *= 1.6;
+      const wasGuard = BT.guard;
+      if (wasGuard) { dmg *= 0.5; BT.guard = false; }
+      dmg = Math.max(1, Math.round(dmg));
+      BT.petHp = Math.max(0, BT.petHp - dmg);
+      BT.dmgTaken = (BT.dmgTaken || 0) + dmg;
+      blogAdd(blogLine(wasGuard ? 'blocked' : ((crit || power) ? 'fCrit' : 'fAtk'), { foe: fname, dmg: dmg }), wasGuard ? 'me' : 'foe');
+      sfx(function(){SFX.miss();});
+    }
+  }
+  if (BT.petHp <= 0) { endBattle(false); return; }
+  renderBattle();
+}
+function endBattle(won) {
+  if (!BT || BT.over) return;
+  BT.over = true; BT.winner = won ? 'pet' : 'foe'; BT.busy = false;
+  const r = arenaRecord();
+  const isRival = !!(BT.foe && BT.foe.rival);
+  if (won) {
+    if (isRival) r.rw = (r.rw || 0) + 1; else r.w++;
+    S.stats.happy = clamp(S.stats.happy + 15, 0, 100);
+    blogAdd(blogLine('win', { foe: BT.foe.name }), 'sys');
+    say(pick(['Victory tastes like stardust!', 'Did you SEE that?! I am unstoppable.']), 4000);
+    sfx(function(){SFX.win();}); sparkleBurst(12);
+  } else {
+    if (isRival) r.rl = (r.rl || 0) + 1; else r.l++;
+    // friendly loss: small dip, never below 5, health untouched, never dies
+    S.stats.energy = Math.max(5, S.stats.energy - 8);
+    S.stats.happy = Math.max(5, S.stats.happy - 8);
+    blogAdd(blogLine('lose', { foe: BT.foe.name }), 'sys');
+    say('A tactical defeat. I meant to do that. Probably.', 4000);
+  }
+  arenaSaveRecord(r); renderArenaRecord();
+  showBattleReport(won);
+  renderBattle(); save(); renderStats();
+}
+function showBattleReport(won) {
+  const moves = el('moves'), ff = el('btnForfeit'), rep = el('battleReport');
+  if (moves) moves.style.display = 'none';
+  if (ff) ff.style.display = 'none';
+  if (!rep || !BT) return;
+  const bn = el('repBanner');
+  if (bn) { bn.textContent = won ? '🏆 VICTORY!' : '💫 DEFEAT'; bn.className = won ? 'win' : 'lose'; }
+  const rs = el('repStats');
+  if (rs) {
+    rs.innerHTML =
+      '<div>Rounds fought: <b>' + BT.turn + '</b></div>' +
+      '<div>Damage dealt: <b>' + (BT.dmgDealt || 0) + '</b> · taken: <b>' + (BT.dmgTaken || 0) + '</b></div>' +
+      '<div>HP remaining: <b>' + Math.max(0, Math.round(BT.petHp)) + ' / ' + BT.petMax + '</b></div>' +
+      '<div class="repfoe">vs ' + esc(BT.foe.name) + (BT.foe.rival ? ' 🤝 shared rival' : '') + '</div>';
+  }
+  const rr = el('repRecord');
+  if (rr) {
+    const r = arenaRecord();
+    let t = 'Arena record: ' + r.w + 'W – ' + r.l + 'L';
+    if ((r.rw || 0) + (r.rl || 0) > 0) t += ' · rivals ' + (r.rw || 0) + 'W – ' + (r.rl || 0) + 'L';
+    rr.textContent = t;
+  }
+  rep.style.display = 'block';
+  rep.classList.remove('show');
+  try { void rep.offsetWidth; } catch (e) {}
+  rep.classList.add('show');
+  try { rep.scrollIntoView({ block: 'nearest' }); } catch (e) {}
+}
+function hideBattleReport() {
+  const rep = el('battleReport'), moves = el('moves'), ff = el('btnForfeit');
+  if (rep) { rep.style.display = 'none'; rep.classList.remove('show'); }
+  if (moves) moves.style.display = '';
+  if (ff) { ff.style.display = ''; ff.textContent = '🏳️ FORFEIT'; }
+}
+function forfeitBattle() {
+  if (!BT || BT.over) return;
+  const r = arenaRecord();
+  if (BT.foe && BT.foe.rival) r.rl = (r.rl || 0) + 1; else r.l++;
+  arenaSaveRecord(r); renderArenaRecord();
+  BT.over = true; BT.winner = 'foe'; BT.busy = false;
+  blogAdd(blogLine('forfeit'), 'sys');
+  showBattleReport(false);
+  renderBattle(); save();
+}
+function backToArenaHome() {
+  BT = null;
+  hideBattleReport();
+  const fight = el('arenaFight'), home = el('arenaHome');
+  if (fight) fight.style.display = 'none';
+  if (home) home.style.display = 'block';
+  const bf = el('btnForfeit'); if (bf) bf.textContent = '🏳️ FORFEIT';
+  renderArenaRecord();
+  try { renderFoePicker(); } catch (e) {}
+  try { window.scrollTo(0, 0); } catch (e) {}
+}
+function bindArena() {
+  onTap('btnEnterArena', function () {
+    if (BT && !BT.over) return;
+    startBattle();
+  });
+  onTap('mvAttack', function () { playerMove('attack'); });
+  onTap('mvBurst', function () { playerMove('burst'); });
+  onTap('mvGuard', function () { playerMove('guard'); });
+  onTap('mvSnack', function () { playerMove('snack'); });
+  onTap('btnForfeit', function () {
+    if (!BT) return;
+    if (BT.over) backToArenaHome(); else forfeitBattle();
+  });
+  onTap('btnFight', function () { showView('arena'); });
+  onTap('btnRematch', function () {
+    const foe = BT && BT.foe ? BT.foe : null;
+    startBattle(foe);
+  });
+  onTap('btnNewFoe', function () { backToArenaHome(); });
+  onTap('btnBackPet', function () { backToArenaHome(); showView('pet'); });
+  bindCohesion();
+  // opponent picker (built-in foes + imported rivals)
+  try { renderFoePicker(); } catch (e) {}
+}
+/* ---------------- 📻 RADIO: all US stations, always resolves ---------------- */
+const RADIO_MIRRORS = ['de1.api.radio-browser.info', 'de2.api.radio-browser.info', 'nl1.api.radio-browser.info'];
+const RPAGE = 200;
+const RLS_FAV = 'eru-radio-favs-v2', RLS_RECENT = 'eru-radio-recent-v2', RLS_VOL = 'eru-radio-vol-v2';
+const US_STATES = ['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming'];
+const GENRES = [['','🎵 ALL'],['news','NEWS'],['rock','ROCK'],['country','COUNTRY'],['jazz','JAZZ'],['classical','CLASSICAL'],['hip-hop','HIP-HOP'],['sports','SPORTS'],['talk','TALK']];
+// 19 verified Knoxville, TN fallback stations (embedded; used when the directory is unreachable)
+const KNOX_FALLBACK = [{"stationuuid":"knox-WCYQ","name":"WCYQ 100.3 FM 100.3 The Wolf","state":"Tennessee","tags":"country","url":null,"homepage":"https://knoxvillewolf.com"},{"stationuuid":"knox-WDKW","name":"WDKW 95.7 FM 95.7 Duke FM","state":"Tennessee","tags":"classic country","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WDKWFMAAC.aac","homepage":null},{"stationuuid":"knox-WDVX","name":"WDVX 89.9 FM East Tennessee's Own","state":"Tennessee","tags":"americana","url":"https://wdvx.streamguys1.com/live","homepage":"http://wdvx.com/"},{"stationuuid":"knox-WIMZ","name":"WIMZ 103.5 FM 103.5 WIMZ","state":"Tennessee","tags":"classic rock","url":"https://26353.live.streamtheworld.com/WIMZFMAAC_SC","homepage":"http://www.wimz.com/"},{"stationuuid":"knox-WIVK","name":"WIVK 107.7 FM 107.7 WIVK","state":"Tennessee","tags":"country","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WIVKFMAAC.aac","homepage":"http://www.wivk.com/"},{"stationuuid":"knox-WJBE","name":"WJBE 99.7 FM · 1040 AM Jammin' 99.7","state":"Tennessee","tags":"urban contemporary","url":"http://ice8.securenetsystems.net/WJBE","homepage":"https://wjbe.org"},{"stationuuid":"knox-WJXB","name":"WJXB 97.5 FM B97.5","state":"Tennessee","tags":"adult contemporary","url":"https://19263.live.streamtheworld.com/WJXBFMAAC_SC","homepage":null},{"stationuuid":"knox-WKHT","name":"WKHT 104.5 FM Hot 104.5","state":"Tennessee","tags":"rhythmic chr","url":"https://n06.rcs.revma.com/k15hbcmfz7uvv","homepage":"http://www.hot1045.net/"},{"stationuuid":"knox-WMYL","name":"WMYL 96.7 FM 96.7 Merle","state":"Tennessee","tags":"country","url":null,"homepage":"https://www.967merle.com/"},{"stationuuid":"knox-WNFZ","name":"WNFZ 94.3 FM 94.3 Jack FM","state":"Tennessee","tags":"adult hits","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WNFZFMAAC.aac","homepage":"https://jackfmknoxville.com"},{"stationuuid":"knox-WNML","name":"WNML 990 AM · 99.1 FM The Sports Animal","state":"Tennessee","tags":"sports","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WNMLAM","homepage":null},{"stationuuid":"knox-WNOX","name":"WNOX 93.1 FM Classic Rock 93.1","state":"Tennessee","tags":"classic rock","url":null,"homepage":"https://www.classicrock931.fm/"},{"stationuuid":"knox-WNRX","name":"WNRX 99.3 FM 99.3 The Lake","state":"Tennessee","tags":"classic rock","url":null,"homepage":"https://wnrxradio.com/"},{"stationuuid":"knox-WOFM","name":"WOFM 89.1 FM Air1","state":"Tennessee","tags":"christian contemporary","url":"https://maestro.emfcdn.com/stream_for/air1/airable/aac","homepage":null},{"stationuuid":"knox-WOKI","name":"WOKI 98.7 FM NewsTalk 98.7","state":"Tennessee","tags":"news/talk","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WOKIFMAAC.aac","homepage":null},{"stationuuid":"knox-WUOT","name":"WUOT 91.9 FM UT Public Radio","state":"Tennessee","tags":"public npr","url":"https://26223.live.streamtheworld.com/WUOTFM_SC","homepage":"http://www.wuot.org/"},{"stationuuid":"knox-WUTK","name":"WUTK 90.3 FM The Rock","state":"Tennessee","tags":"college","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WUTKFM.mp3","homepage":null},{"stationuuid":"knox-WWST","name":"WWST 102.1 FM Star 102.1","state":"Tennessee","tags":"top 40 chr","url":null,"homepage":"https://www.star1021fm.com/"},{"stationuuid":"knox-WYLV","name":"WYLV 88.3 FM K-LOVE","state":"Tennessee","tags":"christian contemporary","url":"https://maestro.emfcdn.com/stream_for/k-love/airable/aac","homepage":null}];
+// pet genre reactions
+const RADIO_LINES = [
+  { t: ['jazz','blues','smooth'], l: ["Ooh, smooth. The stars sway to this.", "Jazz! My robe is already snapping along."] },
+  { t: ['metal','hard rock'], l: ["LOUDER. The cosmos demands distortion.", "Metal?! My staff is now a guitar. Obviously."] },
+  { t: ['rock'], l: ["Rock! The asteroids are headbanging.", "A mortal guitar solo. Respect."] },
+  { t: ['country'], l: ["Country, huh? Even wizards tip their hats.", "A fiddle in the cosmos. I approve."] },
+  { t: ['classical','orchestral','symphony','opera'], l: ["Ah, the old magic. Strings and stardust.", "Classical. My spellbook approves."] },
+  { t: ['hip-hop','hip hop','rap'], l: ["Bars from the void. Respect.", "The beat slaps across dimensions."] },
+  { t: ['news'], l: ["Mortal news? Keep one ear open, I suppose.", "News of the realm. Do go on."] },
+  { t: ['talk','podcast','comedy'], l: ["Talk radio. I shall judge silently. ...Loudly.", "Humans talking at humans. Fascinating."] },
+  { t: ['sports'], l: ["Sports! May the best mortals win.", "A contest of athletic mortals. I am entertained."] },
+  { t: ['pop','top 40','hits','dance','edm','electronic','techno','house'], l: ["Catchy. Suspiciously catchy. ...I love it.", "Beats from the nebula. Dance, mortal."] },
+  { t: ['christian','gospel','worship'], l: ["A hymn for the heavens. Lovely.", "Sacred sounds. Even I bow my head. Slightly."] },
+  { t: ['latin','salsa','reggaeton','banda','grupera'], l: ["¡Ritmo cósmico! My hips approve.", "Latin fire! The galaxy is dancing."] },
+  { t: ['oldies'], l: ["Oldies! Even I remember these. I am very old."] },
+  { t: ['ambient','chill','lofi'], l: ["Mmm. Cosmic background radiation, but make it music.", "Chill waves. My dreams sound like this."] }
+];
+const RADIO_DEFAULT = ["A mortal broadcast! I shall listen with one divine ear.", "Radio! Humans singing across the void. Charming.", "The airwaves hum. My scrying pool approves."];
+
+let rList = [], rOffset = 0, rHasMore = true, rLoading = false, rFallback = false, rBooted = false;
+let rQuery = '', rGenre = '', rState = '', rView = 'all';
+let rFavs = [], rRecent = [], rDead = {}, rCurrentUuid = null, rErrFlag = null, radioMirror = null;
+const RLS_SRC = 'eru-radio-src-v2';
+let rSrc = 'us'; // 'us' | 'world' | 'soma'
+try {
+  const sv = localStorage.getItem(RLS_SRC);
+  if (sv === 'us' || sv === 'world' || sv === 'soma') rSrc = sv;
+} catch (e) {}
+function rLSget(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+function rLSset(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+/* race all mirrors; first success wins (never hangs) */
+function rFetch(path) {
+  const racers = RADIO_MIRRORS.map(function (m) {
+    return (async function () {
+      const ctl = ('AbortController' in window) ? new AbortController() : null;
+      const timer = setTimeout(function () { try { if (ctl) ctl.abort(); } catch (e) {} }, 8000);
+      try {
+        const opts = ctl ? { signal: ctl.signal } : {};
+        const r = await fetch('https://' + m + '/json/' + path, opts);
+        clearTimeout(timer);
+        if (!r.ok) throw new Error('http ' + r.status);
+        const data = await r.json();
+        radioMirror = m;
+        return data;
+      } catch (e) { clearTimeout(timer); throw e; }
+    })();
+  });
+  if (typeof Promise.any === 'function') return Promise.any(racers);
+  return Promise.all(racers.map(function (p) { return p.catch(function (e) { return e; }); }))
+    .then(function (rs) { for (const r of rs) { if (!(r instanceof Error)) return r; } throw rs[0]; });
+}
+function rNorm(s) {
+  return {
+    uuid: s.stationuuid || s.uuid || ('x' + Math.random().toString(36).slice(2)),
+    name: (((s.name || 'Unknown station') + '').trim().replace(/\s+/g, ' ')) || 'Unknown station',
+    state: ((s.state || '') + '').trim(),
+    tags: (((s.tags || '') + '').trim().replace(/\s+/g, ' ')),
+    url: s.url_resolved || s.url || null,
+    homepage: s.homepage || null
+  };
+}
+function rEndpoint(offset) {
+  const p = 'order=name&orderDirection=asc&limit=' + RPAGE + '&offset=' + offset + '&hidebroken=true';
+  if (rQuery) return 'stations/byname/' + encodeURIComponent(rQuery) + '?' + p;
+  if (rState) return 'stations/bystateexact/' + encodeURIComponent(rState) + '?' + p;
+  if (rGenre) return 'stations/bytag/' + encodeURIComponent(rGenre) + '?' + p;
+  if (rSrc === 'world') return 'stations/search?' + p; // worldwide: no country filter
+  return 'stations/bycountrycodeexact/US?' + p;
+}
+function rLoadMore() {
+  if (rLoading || !rHasMore || rFallback || rSrc === 'soma' || rView === 'fav' || rView === 'recent') return Promise.resolve();
+  rLoading = true;
+  const ld = el('rLoading'); if (ld) ld.classList.remove('hidden');
+  return rFetch(rEndpoint(rOffset)).then(function (data) {
+    let items = (data || []).map(rNorm);
+    if (rState && rGenre) {
+      const g = rGenre.toLowerCase();
+      items = items.filter(function (s) { return ((s.tags + ' ' + s.name).toLowerCase().indexOf(g) !== -1); });
+    }
+    if (rOffset === 0) rList = [];
+    for (const s of items) { if (!rList.some(function (x) { return x.uuid === s.uuid; })) rList.push(s); }
+    rList.sort(function (a, b) {
+      const x = a.name.toLowerCase(), y = b.name.toLowerCase();
+      return x < y ? -1 : (x > y ? 1 : 0);
+    });
+    rOffset += (data || []).length;
+    rHasMore = (data || []).length === RPAGE;
+    rRender();
+  }).catch(function () {
+    if (rOffset === 0) rEnterFallback();
+    else rToast('⚠ Could not load more stations');
+  }).then(function () {
+    rLoading = false;
+    const ld2 = el('rLoading'); if (ld2) ld2.classList.add('hidden');
+  });
+}
+function rEnterFallback() {
+  rFallback = true; rHasMore = false;
+  rList = KNOX_FALLBACK.map(rNorm);
+  const n = el('rNotice');
+  if (n) {
+    n.textContent = '📡 Full US directory unreachable — showing 19 Knoxville, TN stations instead. Reopen this tab to retry.';
+    n.classList.remove('hidden');
+  }
+  const ld = el('rLoading'); if (ld) ld.classList.add('hidden');
+  rRender();
+}
+/* ---------------- SomaFM directory (free, no key, CORS-friendly) ---------------- */
+function rSomaNorm(ch) {
+  const id = String((ch && ch.id) || '').trim();
+  const genre = String((ch && (ch.genre || ch.description)) || '').replace(/\|/g, ',');
+  return {
+    uuid: 'soma:' + id,
+    name: (String((ch && ch.title) || 'SomaFM').trim().replace(/\s+/g, ' ')) || 'SomaFM',
+    state: '',
+    tags: genre.trim().replace(/\s+/g, ' '),
+    url: 'https://ice1.somafm.com/' + id + '-128-mp3',
+    homepage: 'https://somafm.com/' + id + '/',
+    soma: true
+  };
+}
+function rLoadSoma() {
+  rLoading = true;
+  const ld = el('rLoading'); if (ld) ld.classList.remove('hidden');
+  return fetch('https://somafm.com/channels.json', { cache: 'no-store' })
+    .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+    .then(function (j) {
+      const chs = (j && Array.isArray(j.channels)) ? j.channels : [];
+      if (!chs.length) throw new Error('empty');
+      rList = chs.map(rSomaNorm);
+      rList.sort(function (a, b) {
+        const x = a.name.toLowerCase(), y = b.name.toLowerCase();
+        return x < y ? -1 : (x > y ? 1 : 0);
+      });
+      rOffset = 0; rHasMore = false; rFallback = false;
+      rRender();
+    })
+    .catch(function () {
+      rList = [];
+      const n = el('rNotice');
+      if (n) {
+        n.textContent = '📡 SomaFM is unreachable right now. Try again soon — the US directory still works.';
+        n.classList.remove('hidden');
+      }
+      rRender();
+    })
+    .then(function () {
+      rLoading = false;
+      const ld2 = el('rLoading'); if (ld2) ld2.classList.add('hidden');
+    });
+}
+function rViewLabel() {
+  if (rView === 'fav') return '★ FAVES';
+  if (rView === 'recent') return '🕐 RECENT';
+  const bits = [];
+  if (rQuery) bits.push('🔍 "' + rQuery + '"');
+  if (rState) bits.push('📍 ' + rState);
+  if (rGenre) bits.push('🎵 ' + rGenre.toUpperCase());
+  const base = rSrc === 'soma' ? 'SOMAFM A–Z' : (rSrc === 'world' ? 'WORLDWIDE A–Z' : 'ALL US STATIONS A–Z');
+  return bits.length ? bits.join(' · ') : base;
+}
+function rVisibleList() {
+  if (rView === 'fav') return rFavs;
+  if (rView === 'recent') return rRecent;
+  let arr = rList;
+  if (rFallback || rSrc === 'soma') {
+    if (rFallback && rState && rState !== 'Tennessee') return [];
+    if (rQuery) { const q = rQuery.toLowerCase(); arr = arr.filter(function (s) { return (s.name + ' ' + s.tags).toLowerCase().indexOf(q) !== -1; }); }
+    if (rGenre) { const g = rGenre.toLowerCase(); arr = arr.filter(function (s) { return (s.tags + ' ' + s.name).toLowerCase().indexOf(g) !== -1; }); }
+  }
+  return arr;
+}
+function rGenreChips(s) {
+  const tags = (s.tags || '').split(',').map(function (t) { return t.trim(); }).filter(Boolean).slice(0, 2);
+  return tags.map(function (t) { return '<span class="rgenre">' + esc(t) + '</span>'; }).join('');
+}
+function rRender() {
+  const listEl = el('rList'); if (!listEl) return;
+  const arr = rVisibleList();
+  listEl.innerHTML = '';
+  const more = (!rFallback && rView !== 'fav' && rView !== 'recent' && rHasMore) ? ' · scroll for more' : '';
+  const rc = el('rCount');
+  if (rc) rc.textContent = arr.length + ' STATION' + (arr.length === 1 ? '' : 'S') + ' · ' + rViewLabel() + more;
+  if (!arr.length) {
+    const d = document.createElement('div');
+    d.className = 'rempty';
+    d.textContent = rView === 'fav' ? 'No favorites yet — tap ★ on a station.' :
+      (rView === 'recent' ? 'Nothing played yet.' : 'No stations match. Try another search.');
+    listEl.appendChild(d); return;
+  }
+  const frag = document.createDocumentFragment();
+  for (const s of arr) {
+    const dead = !!rDead[s.uuid], live = !!s.url && !dead;
+    const row = document.createElement('div');
+    row.className = 'rrow' + (rCurrentUuid === s.uuid ? ' playing' : '') + (dead ? ' dead' : '');
+    row.dataset.uuid = s.uuid;
+    const sub = [s.state, (s.tags || '').split(',')[0]].filter(Boolean).join(' · ');
+    const faved = rFavs.some(function (f) { return f.uuid === s.uuid; });
+    row.innerHTML =
+      '<div class="rbadge">' + (dead ? '⚠' : (live ? '▶' : '↗')) + '</div>' +
+      '<div class="rmeta"><div class="rname">' + esc(s.name) + '</div>' +
+      (sub ? '<div class="rsub">' + esc(sub) + '</div>' : '') +
+      '<div>' + rGenreChips(s) + (s.soma ? '<span class="rsoma">SOMAFM</span>' : '') + (dead ? '<span class="rdead-tag">UNAVAILABLE</span>' : '') +
+      ((!s.url && s.homepage) ? '<span class="rgenre">LINK ONLY</span>' : '') + '</div></div>' +
+      '<button class="riconbtn' + (faved ? ' faved' : '') + '" data-act="fav" aria-label="favorite">★</button>' +
+      (s.homepage ? '<button class="riconbtn" data-act="site" aria-label="open station site">↗</button>' : '');
+    (function (st, rw) {
+      rw.addEventListener('click', function (e) {
+        let t = e.target, act = null;
+        while (t && t !== rw) { if (t.dataset && t.dataset.act) { act = t.dataset.act; break; } t = t.parentNode; }
+        if (act === 'fav') { try { if (e.stopPropagation) e.stopPropagation(); } catch (x) {} rToggleFav(st); return; }
+        if (act === 'site') { try { if (e.stopPropagation) e.stopPropagation(); } catch (x) {} if (st.homepage) { try { window.open(st.homepage, '_blank', 'noopener'); } catch (x) {} } return; }
+        if (live) rPlay(st.uuid);
+        else if (st.homepage) { try { window.open(st.homepage, '_blank', 'noopener'); } catch (x) {} rToast('Opens in your browser ↗'); }
+        else rToast('No stream URL for this station');
+      });
+    })(s, row);
+    frag.appendChild(row);
+  }
+  listEl.appendChild(frag);
+}
+function rFind(uuid) {
+  const pools = [rList, rFavs, rRecent];
+  for (const p of pools) for (const s of p) if (s.uuid === uuid) return s;
+  return null;
+}
+function rToggleFav(s) {
+  const i = rFavs.findIndex(function (f) { return f.uuid === s.uuid; });
+  if (i >= 0) rFavs.splice(i, 1); else { rFavs.unshift(s); sfx(function(){SFX.fav();}); }
+  rLSset(RLS_FAV, rFavs);
+  rRender();
+}
+function rTouchRecent(s) {
+  rRecent = rRecent.filter(function (x) { return x.uuid !== s.uuid; });
+  rRecent.unshift(s);
+  if (rRecent.length > 8) rRecent.length = 8;
+  rLSset(RLS_RECENT, rRecent);
+}
+function rToast(msg, ms) {
+  rPetReactToast(msg, ms);
+}
+function rPetReactToast(msg, ms) { say('📻 ' + msg.replace(/^📻 /, ''), ms || 2600); }
+function rPetReact(s) {
+  const hay = (' ' + (s.tags || '') + ' ' + (s.name || '')).toLowerCase();
+  let line = null;
+  for (const g of RADIO_LINES) {
+    if (g.t.some(function (t) { return hay.indexOf(t) !== -1; })) { line = pick(g.l); break; }
+  }
+  if (!line) line = pick(RADIO_DEFAULT);
+  say('📻 ' + line, 6000);
+}
+let rAudioEl = null;
+function rAudio() {
+  if (!rAudioEl) rAudioEl = el('radioAudio');
+  return rAudioEl;
+}
+function rPlay(uuid) {
+  const s = rFind(uuid);
+  if (!s) return false;
+  if (!s.url) { if (s.homepage) { try { window.open(s.homepage, '_blank', 'noopener'); } catch (e) {} } return true; }
+  const a = rAudio(); if (!a) return false;
+  rCurrentUuid = uuid; rErrFlag = null;
+  try { a.src = s.url; } catch (e) {}
+  const nn = el('npName'), ns = el('npSub'), ne = el('npErr'), np = el('nowPlaying'), pb = el('npPlay');
+  if (nn) nn.textContent = s.name;
+  if (ns) ns.textContent = [s.state, (s.tags || '').split(',')[0]].filter(Boolean).join(' · ') || 'live radio';
+  if (ne) ne.classList.remove('show');
+  if (np) np.classList.add('show');
+  if (pb) pb.textContent = '⏸';
+  rTouchRecent(s);
+  rPetReact(s);
+  try {
+    const pr = a.play();
+    if (pr && pr.catch) pr.catch(function () { rStreamError(uuid); });
+  } catch (e) { rStreamError(uuid); }
+  rRender();
+  return true;
+}
+function rStreamError(uuid) {
+  if (rErrFlag === uuid) return;
+  rErrFlag = uuid;
+  const pb = el('npPlay'); if (pb) pb.textContent = '▶';
+  const e = el('npErr');
+  if (e) { e.textContent = '⚠ Stream unavailable — this station may be offline. Pick another.'; e.classList.add('show'); }
+  rDead[uuid] = true;   // marked dead; its directory click-count is never incremented
+  rRender();
+}
+function rStop() {
+  const a = rAudio();
+  if (a) { try { a.pause(); a.removeAttribute('src'); a.load(); } catch (e) {} }
+  rCurrentUuid = null; rErrFlag = null;
+  const np = el('nowPlaying'); if (np) np.classList.remove('show');
+  rRender();
+}
+function bindRadioPlayer() {
+  const a = rAudio();
+  if (a) {
+    on(a, 'playing', function () {
+      const pb = el('npPlay'); if (pb) pb.textContent = '⏸';
+      const ne = el('npErr'); if (ne) ne.classList.remove('show');
+      // register the listen with the directory ONLY for streams that actually play
+      if (rCurrentUuid && !rFallback && radioMirror) {
+        try { fetch('https://' + radioMirror + '/json/url/' + rCurrentUuid).catch(function () {}); } catch (e) {}
+      }
+    });
+    on(a, 'pause', function () { const pb = el('npPlay'); if (pb) pb.textContent = '▶'; });
+    on(a, 'error', function () { if (rCurrentUuid) rStreamError(rCurrentUuid); });
+  }
+  onTap('npPlay', function () {
+    if (!rCurrentUuid) return;
+    const au = rAudio(); if (!au) return;
+    if (au.paused) {
+      rErrFlag = null;
+      try { const pr = au.play(); if (pr && pr.catch) pr.catch(function () { rStreamError(rCurrentUuid); }); } catch (e) { rStreamError(rCurrentUuid); }
+    } else { try { au.pause(); } catch (e) {} }
+  });
+  onTap('npClose', function () { rStop(); });
+  const vol = el('npVol');
+  if (vol) {
+    try { vol.value = rLSget(RLS_VOL, 80); } catch (e) {}
+    const au2 = rAudio(); if (au2) { try { au2.volume = (parseInt(vol.value, 10) || 80) / 100; } catch (e) {} }
+    on('npVol', 'input', function () {
+      const v = parseInt(vol.value, 10) || 80;
+      const au3 = rAudio(); if (au3) { try { au3.volume = v / 100; } catch (e) {} }
+      rLSset(RLS_VOL, v);
+    });
+  }
+}
+function rApplyView() {
+  rList = []; rOffset = 0; rHasMore = true; rDead = {}; rFallback = false;
+  rRender();
+  if (rSrc === 'soma') return rLoadSoma();
+  return rLoadMore();
+}
+function rSyncSrc() {
+  const nodes = document.querySelectorAll('#srcBar .srcbtn');
+  for (let i = 0; i < nodes.length; i++) nodes[i].classList.toggle('active', nodes[i].dataset.src === rSrc);
+  const st = el('rState'); if (st) st.style.display = rSrc === 'soma' ? 'none' : '';
+  const rs = el('rSearch');
+  if (rs) rs.placeholder = rSrc === 'soma' ? '🔍 search SomaFM channels…' : (rSrc === 'world' ? '🔍 search worldwide stations…' : '🔍 search all US stations…');
+  const sub = el('rSub');
+  if (sub) sub.textContent = rSrc === 'soma' ? 'SOMAFM · INDEPENDENT RADIO' : (rSrc === 'world' ? 'WORLDWIDE · LIVE' : 'ALL US STATIONS · LIVE');
+}
+function rSyncChips() {
+  const sync = function (sel, attr, val) {
+    const nodes = document.querySelectorAll(sel);
+    for (let i = 0; i < nodes.length; i++) {
+      const c = nodes[i];
+      const on_ = attr === 'view'
+        ? (c.dataset.view === rView && !rQuery && !rGenre && !rState)
+        : ((c.dataset.genre || '') === rGenre);
+      c.classList.toggle('active', !!on_);
+    }
+  };
+  sync('#rChips .rchip', 'view');
+  sync('#rGenres .rchip', 'genre');
+}
+function bindRadioControls() {
+  let searchT = null;
+  on('rSearch', 'input', function () {
+    try { clearTimeout(searchT); } catch (e) {}
+    searchT = setTimeout(function () {
+      const inp = el('rSearch');
+      rQuery = inp ? inp.value.trim() : '';
+      rView = 'all'; rSyncChips(); rApplyView();
+    }, 450);
+  });
+  const chips = document.querySelectorAll('#rChips .rchip');
+  for (let i = 0; i < chips.length; i++) {
+    (function (c) {
+      onTap(c, function () {
+        rView = c.dataset.view; rQuery = '';
+        const inp = el('rSearch'); if (inp) inp.value = '';
+        rSyncChips(); rApplyView();
+      });
+    })(chips[i]);
+  }
+  const genres = document.querySelectorAll('#rGenres .rchip');
+  for (let i = 0; i < genres.length; i++) {
+    (function (c) {
+      onTap(c, function () {
+        rGenre = c.dataset.genre || '';
+        rQuery = ''; const inp = el('rSearch'); if (inp) inp.value = '';
+        rView = 'all'; rSyncChips(); rApplyView();
+      });
+    })(genres[i]);
+  }
+  on('rState', 'change', function () {
+    const s = el('rState');
+    rState = s ? s.value : '';
+    rQuery = ''; const inp = el('rSearch'); if (inp) inp.value = '';
+    rView = 'all'; rSyncChips(); rApplyView();
+  });
+  // infinite scroll (passive)
+  try {
+    window.addEventListener('scroll', function () {
+      if (currentView !== 'radio') return;
+      if (rView === 'fav' || rView === 'recent' || rFallback || rSrc === 'soma') return;
+      try {
+        if (window.innerHeight + window.scrollY > document.body.scrollHeight - 700) rLoadMore();
+      } catch (e) {}
+    }, { passive: true });
+  } catch (e) {}
+  // source selector: US | Worldwide | SomaFM
+  const srcs = document.querySelectorAll('#srcBar .srcbtn');
+  for (let i = 0; i < srcs.length; i++) {
+    (function (c) {
+      onTap(c, function () {
+        const v = c.dataset.src;
+        if (!v || v === rSrc) return;
+        rSrc = v; rLSset(RLS_SRC, v);
+        rQuery = ''; rState = ''; rView = 'all';
+        const inp = el('rSearch'); if (inp) inp.value = '';
+        const sel = el('rState'); if (sel) sel.value = '';
+        const n = el('rNotice'); if (n) { n.textContent = ''; n.classList.add('hidden'); }
+        rSyncChips(); rSyncSrc();
+        try { window.scrollTo(0, 0); } catch (e2) {}
+        rApplyView();
+      });
+    })(srcs[i]);
+  }
+}
+function bootRadio() {
+  if (rBooted) return;
+  rBooted = true;
+  rFavs = rLSget(RLS_FAV, []);
+  rRecent = rLSget(RLS_RECENT, []);
+  try {
+    const sel = el('rState');
+    if (sel) for (const st of US_STATES) {
+      const o = document.createElement('option');
+      o.value = st; o.textContent = st;
+      sel.appendChild(o);
+    }
+  } catch (e) {}
+  bindRadioPlayer();
+  bindRadioControls();
+  rSyncChips();
+  rSyncSrc();
+  rApplyView();
+}
+/* ---------------- pet button bindings (all null-guarded) ---------------- */
+function bindPet() {
+  onTap('btnFeed', function () { const fm = el('foodMenu'); if (fm) fm.classList.toggle('hidden'); sfx(function(){SFX.tap();}); });
+  const foods = document.querySelectorAll('.foodBtn');
+  for (let i = 0; i < foods.length; i++) {
+    (function (b) {
+      onTap(b, function () { feed(b.dataset.food); });
+    })(foods[i]);
+  }
+  onTap('btnPlay', function () { startGame(); });
+  onTap('btnSleep', function () { toggleSleep(); });
+  onTap('btnClean', function () { clean(); });
+  onTap('btnHeal', function () { heal(); });
+  onTap('soundBtn', function () {
+    S.muted = !S.muted;
+    const b = el('soundBtn'); if (b) b.textContent = S.muted ? '🔇' : '🔊';
+    save();
+    if (!S.muted) sfx(function(){SFX.tap();});
+  });
+  onTap('ovBtn', function () { rebirth(); });
+  const pet = el('petBox');
+  if (pet) onTap(pet, function () {
+    if (S.dead || S.stage === 'egg' || gameOn) return;
+    S.stats.happy = clamp(S.stats.happy + 4, 0, 100);
+    sparkleBurst(3);
+    sfx(function(){SFX.tap();});
+    say(pick(['*purrs in cosmic*', 'Affection accepted. Barely.', 'Headpats: the highest honor.']));
+    save(); renderStats();
+  });
+  const cv = el('gameCanvas');
+  if (cv) {
+    on('gameCanvas', 'touchstart', gameTap, { passive: false });
+    on('gameCanvas', 'mousedown', gameTap);
+  }
+}
+
+/* ---------------- service worker (guarded: must never break the app) ---------------- */
+function registerSW() {
+  try {
+    if (!('serviceWorker' in navigator)) return;
+    if (window.location.protocol !== 'https:' && window.location.protocol !== 'http:') return; // file://: skip
+    window.addEventListener('load', function () {
+      try { navigator.serviceWorker.register('sw.js').catch(function () {}); } catch (e) {}
+    });
+  } catch (e) {}
+}
+
+/* ---------------- init ---------------- */
+(function init() {
+  try {
+    const had = load();
+    buildStars();
+    const sb = el('soundBtn'); if (sb) sb.textContent = S.muted ? '🔇' : '🔊';
+    bindTabs();
+    bindPet();
+    bindArena();
+    bindCustom();
+    bindJobs();
+    applyCustom();
+    renderPower();
+    renderShards();
+    newMineField();
+    renderHerbs();
+    renderGearShop();
+    renderArenaRecord();
+    if (had && !S.dead) {
+      applyOfflineProgress();
+      checkStage();
+      if (!S.dead) setTimeout(function () { sayKey('greet', 4000); }, 800);
+    } else if (!had) {
+      say('...Something stirs within the egg. I hatch soon. Tend the stars meanwhile.', 5000);
+    }
+    if (S.dead) {
+      const t = el('ovTitle'), x = el('ovText'), b = el('ovBtn'), o = el('overlay');
+      if (t) t.textContent = '🌌 THE STARS RECLAIMED ME 🌌';
+      if (x) x.textContent = 'While you were away, my light faded... Summon me again, and this time — snacks. So many snacks.';
+      if (b) b.textContent = '✨ SUMMON ERU AGAIN';
+      if (o) o.classList.remove('hidden');
+    }
+    renderAll();
+    save();
+    registerSW();
+  } catch (e) {
+    // last resort: at least show the pet view so the app is never a blank screen
+    try {
+      const p = el('viewPet'); if (p) p.style.display = 'flex';
+    } catch (x) {}
+  }
+})();
+
+/* main tick: 1s */
+try {
+  setInterval(function () {
+    try {
+      if (S.dead) return;
+      applyDecay(1 / 60);
+      checkStage();
+      ambientChatter();
+      renderStats(); renderScreen();
+    } catch (e) {}
+  }, 1000);
+  setInterval(function () { try { blinkTick(); } catch (e) {} }, 4200);
+  setInterval(save, 15000);
+  window.addEventListener('beforeunload', save);
+} catch (e) {}
+</script>
+</body>
+</html>
