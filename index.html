@@ -1396,7 +1396,7 @@ function applyCustom() {
     const ps = el('petSvg'); if (ps) ps.innerHTML = svg;
     const pf = el('petFightImg'); if (pf) { pf.style.display = isEru ? '' : 'none'; pf.style.filter = isEru ? themeFilter() : ''; }
     const fs = el('fightSvg'); if (fs) fs.innerHTML = svg;
-    const pv = el('customPreviewImg'); if (pv) { pv.style.display = isEru ? '' : 'none'; pv.style.filter = isEru ? themeFilter() : ''; }
+    const pv = el('customPreviewImg'); if (pv) { if (isEru && pi && pi.src) pv.src = pi.src; pv.style.display = isEru ? '' : 'none'; pv.style.filter = isEru ? themeFilter() : ''; }
     const pvs = el('customPreviewSvg'); if (pvs) pvs.innerHTML = svg;
     const pvw = el('customPreviewWrap'); if (pvw) pvw.style.boxShadow = aura.css;
     const acc = el('accessory'); if (acc) acc.textContent = '';
