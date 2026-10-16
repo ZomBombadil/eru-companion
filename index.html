@@ -1162,9 +1162,16 @@ const ACCESSORIES = [
   { id: 'hat', emoji: '🎩', name: 'Top Hat' },
   { id: 'crown', emoji: '👑', name: 'Crown' },
   { id: 'glasses', emoji: '🕶️', name: 'Glasses' },
-  { id: 'bow', emoji: '🎀', name: 'Bow' }
+  { id: 'bow', emoji: '🎀', name: 'Bow' },
+  { id: 'beanie', emoji: '🧶', name: 'Beanie' },
+  { id: 'halo', emoji: '😇', name: 'Halo' },
+  { id: 'sunglasses', emoji: '😎', name: 'Sunglasses' },
+  { id: 'monocle', emoji: '🧐', name: 'Monocle' },
+  { id: 'headphones', emoji: '🎧', name: 'Headphones' },
+  { id: 'bandana', emoji: '🧣', name: 'Bandana' }
 ];
-const ACC_MIGRATE = { tophat: 'hat', shades: 'glasses', halo: 'crown', party: 'bow', flower: 'bow', star: 'none', moon: 'none', bolt: 'none' };
+/* 'halo' is now a real accessory (was migrated to crown before it existed). */
+const ACC_MIGRATE = { tophat: 'hat', shades: 'glasses', party: 'bow', flower: 'bow', star: 'none', moon: 'none', bolt: 'none' };
 const AURAS = [
   { id: 'none', name: 'None', css: '', dot: 'transparent' },
   { id: 'green', name: 'Green', css: '0 0 26px rgba(31,220,90,.85)', dot: '#1fdc5a' },
@@ -1202,12 +1209,15 @@ const AVATAR_BASES = [
 ];
 /* Accessories that cannot fit a base are DISABLED for it (never misaligned):
    the Knight wears a helm, so hat + crown do not fit — glasses + bow still do. */
-const AV_DISABLED = { knight: ['hat', 'crown'] };
+/* Knight helm occupies the head: ALL head items blocked (hat, crown, beanie,
+   halo, headphones, bandana). Eye items (glasses, sunglasses, monocle) + bow
+   still fit and stay enabled. */
+const AV_DISABLED = { knight: ['hat', 'crown', 'beanie', 'halo', 'headphones', 'bandana'] };
 /* Per-base anchor points (200x200 viewBox). Accessories are computed from THESE,
    never from a global offset — hat bottom = head-top anchor, glasses centered on
    the eye anchor, bow at the side-of-head anchor. */
 const AV_ANCHORS = {
-  eru:     { hat: { cx: 100, y: 18, w: 56 }, hatH: 16, crownH: 10, eyes: { x1: 92, x2: 108, y: 25, r: 5 }, bow: { x: 130, y: 44 } },
+  eru:     { hat: { cx: 100, y: 18, w: 32 }, hatH: 10, crownH: 8, eyes: { x1: 95, x2: 105, y: 24, r: 5 }, bow: { x: 130, y: 44 } },
   dragon:  { hat: { cx: 100, y: 34, w: 56 }, eyes: { x1: 82, x2: 118, y: 78, r: 6 }, bow: { x: 146, y: 62 } },
   goblin:  { hat: { cx: 100, y: 47, w: 52 }, eyes: { x1: 82, x2: 118, y: 92, r: 6 }, bow: { x: 152, y: 70 } },
   orc:     { hat: { cx: 100, y: 46, w: 60 }, eyes: { x1: 80, x2: 120, y: 98, r: 6 }, bow: { x: 156, y: 76 } },
@@ -1232,6 +1242,21 @@ function avAccSVG(id, A, P) {
   if (id === 'crown') { var w2 = A.hat.w * 0.72, cx2 = A.hat.cx, y2 = A.hat.y, ch = A.crownH || 18, mid = y2 - Math.round(ch * 0.33), gem = y2 - Math.round(ch * 0.44); var pts = (cx2 - w2 / 2) + ',' + y2 + ' ' + (cx2 - w2 / 4) + ',' + (y2 - ch) + ' ' + cx2 + ',' + mid + ' ' + (cx2 + w2 / 4) + ',' + (y2 - ch) + ' ' + (cx2 + w2 / 2) + ',' + y2; return '<polygon points="' + pts + '" fill="#ffd700" stroke="#b8860b" stroke-width="2" stroke-linejoin="round"/><circle cx="' + cx2 + '" cy="' + gem + '" r="3.5" fill="#f472b6"/>'; }
   if (id === 'glasses') { var e = A.eyes, r = Math.max(8, (e.x2 - e.x1) * 0.42); return '<g stroke="#111827" stroke-width="3" fill="rgba(255,255,255,0.18)"><circle cx="' + e.x1 + '" cy="' + e.y + '" r="' + r + '"/><circle cx="' + e.x2 + '" cy="' + e.y + '" r="' + r + '"/><line x1="' + (e.x1 + r) + '" y1="' + e.y + '" x2="' + (e.x2 - r) + '" y2="' + e.y + '"/></g>'; }
   if (id === 'bow') { var bx = A.bow.x, by = A.bow.y; return '<g fill="' + P.accent + '" stroke="#7c2d12" stroke-width="1.5"><polygon points="' + bx + ',' + by + ' ' + (bx - 18) + ',' + (by - 10) + ' ' + (bx - 18) + ',' + (by + 10) + '"/><polygon points="' + bx + ',' + by + ' ' + (bx + 18) + ',' + (by - 10) + ' ' + (bx + 18) + ',' + (by + 10) + '"/><circle cx="' + bx + '" cy="' + by + '" r="5" fill="' + P.main + '"/></g>'; }
+  /* --- New accessories: all computed from the per-base anchors (hat / eyes),
+     so they scale to every base automatically. Heights are capped so even the
+     highest anchor (Eru, hat y=18) stays inside the 200-viewBox + preview circle. */
+  if (id === 'beanie') { var bw = A.hat.w, bcx = A.hat.cx, by2 = A.hat.y, bh = Math.max(10, Math.min(16, Math.round(bw * 0.42)));
+    return '<g><path d="M' + (bcx - bw / 2) + ',' + by2 + ' Q' + (bcx - bw / 2) + ',' + (by2 - bh) + ' ' + bcx + ',' + (by2 - bh) + ' Q' + (bcx + bw / 2) + ',' + (by2 - bh) + ' ' + (bcx + bw / 2) + ',' + by2 + ' Z" fill="' + P.main + '" stroke="' + P.dark + '" stroke-width="2.5" stroke-linejoin="round"/><rect x="' + (bcx - bw / 2 - 2) + '" y="' + (by2 - 6) + '" width="' + (bw + 4) + '" height="7" rx="3.5" fill="' + P.dark + '"/><circle cx="' + bcx + '" cy="' + (by2 - bh + 1) + '" r="3" fill="#f8fafc" stroke="' + P.dark + '" stroke-width="1"/></g>'; }
+  if (id === 'halo') { var hx = A.hat.cx, hy = A.hat.y - 12, hrx = Math.max(10, Math.round(A.hat.w * 0.3));
+    return '<g><ellipse cx="' + hx + '" cy="' + hy + '" rx="' + hrx + '" ry="3.5" fill="none" stroke="#ffd700" stroke-width="3.5"/><ellipse cx="' + hx + '" cy="' + hy + '" rx="' + hrx + '" ry="3.5" fill="none" stroke="#fff7cc" stroke-width="1" opacity="0.8"/></g>'; }
+  if (id === 'sunglasses') { var se = A.eyes, sr = Math.max(8, (se.x2 - se.x1) * 0.42), sw = sr * 1.15, sh = sr * 0.78;
+    return '<g fill="#111827" stroke="#000" stroke-width="1.5"><ellipse cx="' + se.x1 + '" cy="' + se.y + '" rx="' + sw + '" ry="' + sh + '"/><ellipse cx="' + se.x2 + '" cy="' + se.y + '" rx="' + sw + '" ry="' + sh + '"/><line x1="' + (se.x1 + sw) + '" y1="' + se.y + '" x2="' + (se.x2 - sw) + '" y2="' + se.y + '" stroke="#111827" stroke-width="3"/><line x1="' + (se.x1 - sw) + '" y1="' + se.y + '" x2="' + (se.x1 - sw - 6) + '" y2="' + (se.y - 3) + '" stroke="#111827" stroke-width="3" stroke-linecap="round"/><line x1="' + (se.x2 + sw) + '" y1="' + se.y + '" x2="' + (se.x2 + sw + 6) + '" y2="' + (se.y - 3) + '" stroke="#111827" stroke-width="3" stroke-linecap="round"/></g>'; }
+  if (id === 'monocle') { var me = A.eyes, mr = Math.max(7, (me.x2 - me.x1) * 0.35), mx = me.x2, my = me.y;
+    return '<g><circle cx="' + mx + '" cy="' + my + '" r="' + mr + '" fill="rgba(255,255,255,0.18)" stroke="#b8860b" stroke-width="2.5"/><circle cx="' + (mx + mr * 0.3) + '" cy="' + (my - mr * 0.3) + '" r="' + (mr * 0.18) + '" fill="#fff" opacity="0.7"/><path d="M' + (mx + mr * 0.7) + ',' + (my + mr * 0.7) + ' Q' + (mx + 14) + ',' + (my + 16) + ' ' + (mx + 8) + ',' + (my + 22) + '" fill="none" stroke="#b8860b" stroke-width="1.8"/></g>'; }
+  if (id === 'headphones') { var hw = A.hat.w, hcx = A.hat.cx, hy2 = A.hat.y, hbh = Math.max(12, Math.min(30, Math.round(hw * 0.5))), cw = Math.max(8, Math.round(hw * 0.22)), chh = 14;
+    return '<g><path d="M' + (hcx - hw / 2) + ',' + hy2 + ' Q' + hcx + ',' + (hy2 - hbh) + ' ' + (hcx + hw / 2) + ',' + hy2 + '" fill="none" stroke="#1f2937" stroke-width="5" stroke-linecap="round"/><rect x="' + (hcx - hw / 2 - cw / 2) + '" y="' + (hy2 - 2) + '" width="' + cw + '" height="' + chh + '" rx="4" fill="' + P.dark + '" stroke="#0b1220" stroke-width="1.5"/><rect x="' + (hcx + hw / 2 - cw / 2) + '" y="' + (hy2 - 2) + '" width="' + cw + '" height="' + chh + '" rx="4" fill="' + P.dark + '" stroke="#0b1220" stroke-width="1.5"/><circle cx="' + (hcx - hw / 2) + '" cy="' + (hy2 + 5) + '" r="2" fill="' + P.accent + '"/><circle cx="' + (hcx + hw / 2) + '" cy="' + (hy2 + 5) + '" r="2" fill="' + P.accent + '"/></g>'; }
+  if (id === 'bandana') { var nw = A.hat.w, ncx = A.hat.cx, ny = A.hat.y;
+    return '<g><path d="M' + (ncx - nw / 2) + ',' + (ny + 6) + ' L' + (ncx - nw / 2) + ',' + (ny - 4) + ' Q' + ncx + ',' + (ny - 8) + ' ' + (ncx + nw / 2) + ',' + (ny - 4) + ' L' + (ncx + nw / 2) + ',' + (ny + 6) + ' Q' + ncx + ',' + (ny + 2) + ' ' + (ncx - nw / 2) + ',' + (ny + 6) + ' Z" fill="' + P.accent + '" stroke="' + P.dark + '" stroke-width="1.5" stroke-linejoin="round"/><circle cx="' + (ncx + nw / 2) + '" cy="' + ny + '" r="3.5" fill="' + P.accent + '" stroke="' + P.dark + '" stroke-width="1"/><path d="M' + (ncx + nw / 2 + 2) + ',' + (ny + 2) + ' L' + (ncx + nw / 2 + 12) + ',' + (ny + 8) + '" stroke="' + P.accent + '" stroke-width="3" stroke-linecap="round"/><path d="M' + (ncx + nw / 2 + 2) + ',' + (ny + 4) + ' L' + (ncx + nw / 2 + 11) + ',' + (ny + 14) + '" stroke="' + P.accent + '" stroke-width="3" stroke-linecap="round"/></g>'; }
   return '';
 }
 const AV_DRAW = {
