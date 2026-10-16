@@ -490,6 +490,7 @@
     <input id="rSearch" type="search" placeholder="🔍 search all US stations…" autocomplete="off" aria-label="search stations">
     <div id="rChips">
       <button class="rchip active" data-view="all">ALL</button>
+      <button class="rchip" data-view="top">🏆 TOP</button>
       <button class="rchip" data-view="fav">★ FAVES</button>
       <button class="rchip" data-view="recent">🕐 RECENT</button>
     </div>
@@ -2049,7 +2050,10 @@ function rNorm(s) {
     state: ((s.state || '') + '').trim(),
     tags: (((s.tags || '') + '').trim().replace(/\s+/g, ' ')),
     url: s.url_resolved || s.url || null,
-    homepage: s.homepage || null
+    homepage: s.homepage || null,
+    bitrate: parseInt(s.bitrate, 10) || 0,
+    country: ((s.country || '') + '').trim(),
+    votes: parseInt(s.votes, 10) || 0
   };
 }
 function rEndpoint(offset) {
@@ -2061,7 +2065,7 @@ function rEndpoint(offset) {
   return 'stations/bycountrycodeexact/US?' + p;
 }
 function rLoadMore() {
-  if (rLoading || !rHasMore || rFallback || rSrc === 'soma' || rView === 'fav' || rView === 'recent') return Promise.resolve();
+  if (rLoading || !rHasMore || rFallback || rSrc === 'soma' || rView === 'fav' || rView === 'recent' || rView === 'top') return Promise.resolve();
   rLoading = true;
   const ld = el('rLoading'); if (ld) ld.classList.remove('hidden');
   return rFetch(rEndpoint(rOffset)).then(function (data) {
@@ -2082,6 +2086,25 @@ function rLoadMore() {
   }).catch(function () {
     if (rOffset === 0) rEnterFallback();
     else rToast('⚠ Could not load more stations');
+  }).then(function () {
+    rLoading = false;
+    const ld2 = el('rLoading'); if (ld2) ld2.classList.add('hidden');
+  });
+}
+function rLoadTop() {
+  if (rLoading) return Promise.resolve();
+  rLoading = true;
+  const ld = el('rLoading'); if (ld) ld.classList.remove('hidden');
+  const path = (rSrc === 'us')
+    ? 'stations/search?countrycode=US&order=votes&reverse=true&limit=200&hidebroken=true'
+    : 'stations/topvote/200';
+  return rFetch(path).then(function (data) {
+    rList = (data || []).map(rNorm);
+    rOffset = rList.length; rHasMore = false; rFallback = false;
+    rRender();
+  }).catch(function () {
+    if (rOffset === 0) rEnterFallback();
+    else rToast('⚠ Could not load top stations');
   }).then(function () {
     rLoading = false;
     const ld2 = el('rLoading'); if (ld2) ld2.classList.add('hidden');
@@ -2145,6 +2168,7 @@ function rLoadSoma() {
 function rViewLabel() {
   if (rView === 'fav') return '★ FAVES';
   if (rView === 'recent') return '🕐 RECENT';
+  if (rView === 'top') return '🏆 TOP VOTED';
   const bits = [];
   if (rQuery) bits.push('🔍 "' + rQuery + '"');
   if (rState) bits.push('📍 ' + rState);
@@ -2187,13 +2211,13 @@ function rRender() {
     const row = document.createElement('div');
     row.className = 'rrow' + (rCurrentUuid === s.uuid ? ' playing' : '') + (dead ? ' dead' : '');
     row.dataset.uuid = s.uuid;
-    const sub = [s.state, (s.tags || '').split(',')[0]].filter(Boolean).join(' · ');
+    const sub = [s.state || s.country, (s.tags || '').split(',')[0], (s.bitrate ? s.bitrate + ' kbps' : '')].filter(Boolean).join(' · ');
     const faved = rFavs.some(function (f) { return f.uuid === s.uuid; });
     row.innerHTML =
       '<div class="rbadge">' + (dead ? '⚠' : (live ? '▶' : '↗')) + '</div>' +
       '<div class="rmeta"><div class="rname">' + esc(s.name) + '</div>' +
       (sub ? '<div class="rsub">' + esc(sub) + '</div>' : '') +
-      '<div>' + rGenreChips(s) + (s.soma ? '<span class="rsoma">SOMAFM</span>' : '') + (dead ? '<span class="rdead-tag">UNAVAILABLE</span>' : '') +
+      '<div>' + rGenreChips(s) + (s.soma ? '<span class="rsoma">SOMAFM</span>' : '') + ((rView === 'top' && s.votes) ? '<span class="rgenre">★ ' + s.votes + '</span>' : '') + (dead ? '<span class="rdead-tag">UNAVAILABLE</span>' : '') +
       ((!s.url && s.homepage) ? '<span class="rgenre">LINK ONLY</span>' : '') + '</div></div>' +
       '<button class="riconbtn' + (faved ? ' faved' : '') + '" data-act="fav" aria-label="favorite">★</button>' +
       (s.homepage ? '<button class="riconbtn" data-act="site" aria-label="open station site">↗</button>' : '');
@@ -2243,6 +2267,25 @@ function rPetReact(s) {
   say('📻 ' + line, 6000);
 }
 let rAudioEl = null;
+let rJoyTimer = null, rJoySaid = false;
+function rJoyStart() {
+  rJoyStop();
+  rJoySaid = false;
+  try {
+    rJoyTimer = setInterval(function () {
+      try {
+        if (!rCurrentUuid || S.dead || S.stage === 'egg') return;
+        S.stats.happy = clamp(S.stats.happy + 1, 0, 100);
+        save(); renderStats();
+        if (!rJoySaid) { rJoySaid = true; say('🎵 Listening together lifts my spirits. (+Joy)', 4000); }
+      } catch (e) {}
+    }, 60000);
+  } catch (e) {}
+}
+function rJoyStop() {
+  try { if (rJoyTimer) clearInterval(rJoyTimer); } catch (e) {}
+  rJoyTimer = null;
+}
 function rAudio() {
   if (!rAudioEl) rAudioEl = el('radioAudio');
   return rAudioEl;
@@ -2270,6 +2313,7 @@ function rPlay(uuid) {
   return true;
 }
 function rStreamError(uuid) {
+  rJoyStop();
   if (rErrFlag === uuid) return;
   rErrFlag = uuid;
   const pb = el('npPlay'); if (pb) pb.textContent = '▶';
@@ -2279,6 +2323,7 @@ function rStreamError(uuid) {
   rRender();
 }
 function rStop() {
+  rJoyStop();
   const a = rAudio();
   if (a) { try { a.pause(); a.removeAttribute('src'); a.load(); } catch (e) {} }
   rCurrentUuid = null; rErrFlag = null;
@@ -2289,6 +2334,7 @@ function bindRadioPlayer() {
   const a = rAudio();
   if (a) {
     on(a, 'playing', function () {
+      rJoyStart();
       const pb = el('npPlay'); if (pb) pb.textContent = '⏸';
       const ne = el('npErr'); if (ne) ne.classList.remove('show');
       // register the listen with the directory ONLY for streams that actually play
@@ -2296,8 +2342,8 @@ function bindRadioPlayer() {
         try { fetch('https://' + radioMirror + '/json/url/' + rCurrentUuid).catch(function () {}); } catch (e) {}
       }
     });
-    on(a, 'pause', function () { const pb = el('npPlay'); if (pb) pb.textContent = '▶'; });
-    on(a, 'error', function () { if (rCurrentUuid) rStreamError(rCurrentUuid); });
+    on(a, 'pause', function () { rJoyStop(); const pb = el('npPlay'); if (pb) pb.textContent = '▶'; });
+    on(a, 'error', function () { rJoyStop(); if (rCurrentUuid) rStreamError(rCurrentUuid); });
   }
   onTap('npPlay', function () {
     if (!rCurrentUuid) return;
@@ -2323,6 +2369,7 @@ function rApplyView() {
   rList = []; rOffset = 0; rHasMore = true; rDead = {}; rFallback = false;
   rRender();
   if (rSrc === 'soma') return rLoadSoma();
+  if (rView === 'top') return rLoadTop();
   return rLoadMore();
 }
 function rSyncSrc() {
@@ -2388,7 +2435,7 @@ function bindRadioControls() {
   try {
     window.addEventListener('scroll', function () {
       if (currentView !== 'radio') return;
-      if (rView === 'fav' || rView === 'recent' || rFallback || rSrc === 'soma') return;
+      if (rView === 'fav' || rView === 'recent' || rView === 'top' || rFallback || rSrc === 'soma') return;
       try {
         if (window.innerHeight + window.scrollY > document.body.scrollHeight - 700) rLoadMore();
       } catch (e) {}
