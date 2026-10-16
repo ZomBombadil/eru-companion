@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#031007">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="pwa-icons/icon-192.png">
-<title>Eru · Cosmic Companion v2.0 🌌</title>
+<title>Eru · Cosmic Companion v3.0 🌌</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { height:100%; }
@@ -17,8 +17,20 @@
     overflow-x:hidden; touch-action:manipulation;
     user-select:none; -webkit-user-select:none;
   }
+  /* #wrap MUST grow with its content: body is a row flex container, so without
+     align-self:flex-start the stretch default caps #wrap at 100dvh and its
+     bottom padding never extends the document — the last row then sits
+     half-cut behind the fixed tab bar at max scroll (the persistent PET-grid
+     cut). With flex-start, #wrap height = max(100dvh, content + padding), so
+     the bottom padding really does clear the fixed overlays. */
   #wrap { width:100%; max-width:520px; min-height:100dvh; display:flex; flex-direction:column;
-    padding:10px 12px calc(170px + env(safe-area-inset-bottom)); }
+    align-self:flex-start;
+    padding:10px 12px calc(180px + env(safe-area-inset-bottom)); }
+  /* Fixed overlays change height (full player bar ~100px, minimized pill ~48px):
+     the page bottom padding tracks them so the last row of EVERY view always
+     scrolls fully above the tab bar + player — never half-cut behind them. */
+  body.np-open #wrap { padding-bottom:calc(290px + env(safe-area-inset-bottom)); }
+  body.np-min #wrap { padding-bottom:calc(240px + env(safe-area-inset-bottom)); }
   header { display:flex; align-items:center; justify-content:space-between; padding:6px 4px 10px; }
   #petName { font-size:22px; font-weight:bold; letter-spacing:3px; color:#7dff9e; text-shadow:0 0 12px #1fdc5a; }
   #stageAge { font-size:12px; color:#8fdca5; letter-spacing:1px; }
@@ -251,6 +263,24 @@
   #npPlay, #npClose { width:46px; height:40px; border-radius:10px; font-size:17px; cursor:pointer; touch-action:manipulation;
     background:#0a2413; border:2px solid #1fdc5a; color:#7dff9e; font-family:inherit; }
   #npVol { flex:1; accent-color:#1fdc5a; }
+  #npMin { flex:0 0 40px; width:40px; height:32px; border-radius:10px; font-size:20px; line-height:1;
+    cursor:pointer; touch-action:manipulation; background:#0a2413; border:2px solid #1fdc5a;
+    color:#7dff9e; font-family:inherit; }
+  #npMin:active { transform:scale(.94); }
+  /* Minimized player: small pill docked above the tab bar, right edge.
+     Radio keeps playing — minimize is a UI collapse only, never pause/stop.
+     Tap the pill (not its play button) to restore the full bar. */
+  #npPill { position:fixed; right:max(10px, calc(50% - 250px)); bottom:calc(86px + env(safe-area-inset-bottom));
+    z-index:36; display:flex; align-items:center; gap:8px; max-width:250px; height:42px;
+    padding:0 10px 0 6px; background:rgba(2,10,5,.97); border:2px solid #1fdc5a; border-radius:21px;
+    color:#7dff9e; font-family:inherit; cursor:pointer; touch-action:manipulation;
+    box-shadow:0 0 14px rgba(31,220,90,.4); }
+  #npPill.hidden { display:none; }
+  #npPillPlay { flex:0 0 30px; width:30px; height:30px; border-radius:50%; font-size:13px;
+    background:#0a2413; border:2px solid #1fdc5a; color:#7dff9e; cursor:pointer; font-family:inherit; }
+  #npPillName { font-size:12px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #npPillLive { flex:0 0 auto; font-size:9px; font-weight:bold; letter-spacing:1px; color:#031007;
+    background:#39ff6a; border-radius:5px; padding:3px 5px; }
 
   /* ---------- cohesion + arena flow polish ---------- */
   .cohTitle { font-size:14px; font-weight:bold; letter-spacing:2px; color:#7dff9e; margin:16px 0 4px; }
@@ -363,7 +393,7 @@
         <div id="stageAge">🥚 Egg</div>
         <div id="powerBadge">⚡ PL 1</div>
       </div>
-      <div id="ver">v2.0</div>
+      <div id="ver">v3.0</div>
       <button id="soundBtn" title="Sound on/off" aria-label="toggle sound">🔊</button>
     </header>
 
@@ -589,6 +619,7 @@
       <div id="npName"></div>
       <div id="npSub"></div>
     </div>
+    <button id="npMin" aria-label="minimize player" title="Minimize — radio keeps playing">⌄</button>
   </div>
   <div id="npErr"></div>
   <div id="npControls">
@@ -596,6 +627,12 @@
     <input id="npVol" type="range" min="0" max="100" value="80" aria-label="volume">
     <button id="npClose" aria-label="stop">✖</button>
   </div>
+</div>
+
+<div id="npPill" class="hidden" role="button" aria-label="restore player" title="Tap to restore player">
+  <button id="npPillPlay" aria-label="play pause">⏸</button>
+  <span id="npPillName"></span>
+  <span id="npPillLive">● LIVE</span>
 </div>
 
 <nav id="tabBar">
@@ -608,7 +645,7 @@
 <script>
 'use strict';
 /* =====================================================================
-   ERU · COSMIC COMPANION v2.0 — clean rewrite
+   ERU · COSMIC COMPANION v3.0 — clean rewrite
    Pet + Battle Arena + US Radio. Single file, no dependencies.
    ===================================================================== */
 /* ---------------- bulletproof DOM helpers ---------------- */
@@ -2373,13 +2410,21 @@ function rLoadMore() {
   return Promise.all(jobs).then(function (results) {
     var data = results[0] || [];
     var extra = (results[1] || []).concat(results[2] || []);
-    var merged = [], seen = {};
-    var add = function (s) { if (s && !seen[s.uuid]) { seen[s.uuid] = 1; merged.push(s); } };
-    if (rOffset === 0) { var lh = rLocalHits(rQuery); for (var k = 0; k < lh.length; k++) add(lh[k]); }
     var apiItems = [];
     var pushAll = function (arr) { for (var i = 0; i < arr.length; i++) { var n = rNorm(arr[i]); apiItems.push(n); } };
     pushAll(data); pushAll(extra);
+    var merged = [], seen = {};
+    var add = function (s) { if (s && !seen[s.uuid]) { seen[s.uuid] = 1; merged.push(s); } };
     for (var j = 0; j < apiItems.length; j++) add(apiItems[j]);
+    if (rOffset === 0) {
+      /* Browsing (no query, no genre): the curated East Tennessee stations join
+         the browsed list too — WATO 106.1 Atomic 106 is NOT in Radio Browser,
+         so without this it only ever appeared via typed search / Local view.
+         Search still uses rLocalHits; a non-TN state filter excludes locals. */
+      var browseLocals = !rQuery && !rGenre && (!rState || rState === 'Tennessee');
+      var lh = browseLocals ? LOCAL_LIST.slice() : rLocalHits(rQuery);
+      for (var k = 0; k < lh.length; k++) add(lh[k]);
+    }
     var items = merged;
     if (rState && rGenre) {
       const g = rGenre.toLowerCase();
@@ -2653,6 +2698,46 @@ function rStepStation(dir) {
     if (n && n.uuid) rPlay(n.uuid);
   } catch (e) {}
 }
+/* ---------------- radio player minimize ---------------- */
+/* Minimize = UI collapse only: the <audio> element keeps playing. The full
+   bar is replaced by a small pill docked above the tab bar; tapping the pill
+   restores the full bar. X still stops the radio entirely. */
+function rSyncPlayIcons(icon) {
+  if (!icon) { try { var a0 = rAudio(); icon = (a0 && a0.paused) ? '▶' : '⏸'; } catch (e) { icon = '⏸'; } }
+  var pb = el('npPlay'); if (pb) pb.textContent = icon;
+  var pp = el('npPillPlay'); if (pp) pp.textContent = icon;
+}
+function rSyncPlayerChrome() {
+  /* body.np-open drives the extra page bottom padding while the full bar shows */
+  try {
+    var np = el('nowPlaying');
+    document.body.classList.toggle('np-open', !!(np && np.classList.contains('show')));
+  } catch (e) {}
+}
+function rSetMinimized(min) {
+  var np = el('nowPlaying'), pill = el('npPill');
+  try { document.body.classList.toggle('np-min', !!min); } catch (e) {}
+  if (min) {
+    if (np) np.classList.remove('show');
+    if (pill) {
+      var nn = el('npName'), pn = el('npPillName');
+      if (pn && nn) pn.textContent = nn.textContent || 'Radio';
+      pill.classList.remove('hidden');
+    }
+  } else {
+    if (pill) pill.classList.add('hidden');
+    if (np && rCurrentUuid) np.classList.add('show');
+  }
+  rSyncPlayerChrome();
+}
+function rTogglePlay() {
+  if (!rCurrentUuid) return;
+  const au = rAudio(); if (!au) return;
+  if (au.paused) {
+    rErrFlag = null;
+    try { const pr = au.play(); if (pr && pr.catch) pr.catch(function () { rStreamError(rCurrentUuid); }); } catch (e) { rStreamError(rCurrentUuid); }
+  } else { try { au.pause(); } catch (e) {} }
+}
 function rPlay(uuid) {
   const s = rFind(uuid);
   if (!s) return false;
@@ -2665,7 +2750,8 @@ function rPlay(uuid) {
   if (ns) ns.textContent = [s.state, (s.tags || '').split(',')[0]].filter(Boolean).join(' · ') || 'live radio';
   if (ne) ne.classList.remove('show');
   if (np) np.classList.add('show');
-  if (pb) pb.textContent = '⏸';
+  rSetMinimized(false); /* a newly chosen station restores the full bar */
+  rSyncPlayIcons('⏸');
   rMediaSession(s);
   rTouchRecent(s);
   rPetReact(s);
@@ -2680,7 +2766,7 @@ function rStreamError(uuid) {
   rJoyStop();
   if (rErrFlag === uuid) return;
   rErrFlag = uuid;
-  const pb = el('npPlay'); if (pb) pb.textContent = '▶';
+  rSyncPlayIcons('▶');
   const e = el('npErr');
   if (e) { e.textContent = '⚠ Stream unavailable — this station may be offline. Pick another.'; e.classList.add('show'); }
   rDead[uuid] = true;   // marked dead; its directory click-count is never incremented
@@ -2693,6 +2779,7 @@ function rStop() {
   if (a) { try { a.pause(); a.removeAttribute('src'); a.load(); } catch (e) {} }
   rCurrentUuid = null; rErrFlag = null;
   const np = el('nowPlaying'); if (np) np.classList.remove('show');
+  rSetMinimized(false); /* hides the pill + clears np-min / np-open */
   rRender();
 }
 let rVisBound = false;
@@ -2720,25 +2807,26 @@ function bindRadioPlayer() {
   if (a) {
     on(a, 'playing', function () {
       rJoyStart();
-      const pb = el('npPlay'); if (pb) pb.textContent = '⏸';
+      rSyncPlayIcons('⏸');
       const ne = el('npErr'); if (ne) ne.classList.remove('show');
       // register the listen with the directory ONLY for streams that actually play
       if (rCurrentUuid && !rFallback && radioMirror) {
         try { fetch('https://' + radioMirror + '/json/url/' + rCurrentUuid).catch(function () {}); } catch (e) {}
       }
     });
-    on(a, 'pause', function () { rJoyStop(); const pb = el('npPlay'); if (pb) pb.textContent = '▶'; });
+    on(a, 'pause', function () { rJoyStop(); rSyncPlayIcons('▶'); });
     on(a, 'error', function () { rJoyStop(); if (rCurrentUuid) rStreamError(rCurrentUuid); });
   }
-  onTap('npPlay', function () {
-    if (!rCurrentUuid) return;
-    const au = rAudio(); if (!au) return;
-    if (au.paused) {
-      rErrFlag = null;
-      try { const pr = au.play(); if (pr && pr.catch) pr.catch(function () { rStreamError(rCurrentUuid); }); } catch (e) { rStreamError(rCurrentUuid); }
-    } else { try { au.pause(); } catch (e) {} }
-  });
+  onTap('npPlay', rTogglePlay);
   onTap('npClose', function () { rStop(); });
+  onTap('npMin', function () { if (rCurrentUuid) rSetMinimized(true); });
+  onTap('npPill', function (e) {
+    /* tap the pill body restores; the pill's own play button toggles (its tap
+       bubbles here, so ignore taps that started on it) */
+    try { if (e && e.target && e.target.closest && e.target.closest('#npPillPlay')) return; } catch (x) {}
+    rSetMinimized(false);
+  });
+  onTap('npPillPlay', rTogglePlay);
   const vol = el('npVol');
   if (vol) {
     try { vol.value = rLSget(RLS_VOL, 80); } catch (e) {}
