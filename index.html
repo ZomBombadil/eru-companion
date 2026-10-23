@@ -1218,6 +1218,15 @@ function bindVScroll() {
   window.addEventListener('scroll', vScrollState, { passive: true });
   window.addEventListener('resize', vScrollMeasure);
   window.addEventListener('orientationchange', function () { setTimeout(vScrollMeasure, 300); });
+  // re-measure when view content changes (radio list loads, jobs render…)
+  var vmoT = null;
+  try {
+    var wrap = el('wrap');
+    if (wrap && typeof MutationObserver === 'function') {
+      new MutationObserver(function () { clearTimeout(vmoT); vmoT = setTimeout(vScrollMeasure, 160); })
+        .observe(wrap, { childList: true, subtree: true, characterData: true });
+    }
+  } catch (e) {}
   setTimeout(vScrollMeasure, 120);
   setTimeout(vScrollMeasure, 800);
 }
