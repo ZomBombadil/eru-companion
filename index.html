@@ -237,10 +237,20 @@
   /* ---------- tab bar + player ---------- */
   #tabBar { position:fixed; left:50%; transform:translateX(-50%); bottom:0; z-index:40;
     width:100%; max-width:520px; display:flex; gap:8px;
-    overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
-  #tabBar::-webkit-scrollbar { display:none; }
+    overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch;
     padding:10px 14px calc(12px + env(safe-area-inset-bottom));
     background:rgba(2,10,5,.97); border-top:2px solid #1fdc5a; }
+  #tabBar::-webkit-scrollbar { display:none; }
+  /* room for the maneuver buttons when the bar overflows */
+  #tabBar.hasScroll { padding-left:46px; padding-right:46px; }
+  .tabScrollBtn { position:fixed; z-index:42; width:34px; height:48px; display:none;
+    align-items:center; justify-content:center; font-size:18px; font-weight:bold;
+    font-family:inherit; color:#7dff9e; background:rgba(10,36,19,.94);
+    border:2px solid #1fdc5a; border-radius:10px; cursor:pointer;
+    touch-action:manipulation; bottom:calc(17px + env(safe-area-inset-bottom)); }
+  #tabPrev { left:max(6px, calc(50% - 260px + 6px)); }
+  #tabNext { right:max(6px, calc(50% - 260px + 6px)); }
+  .tabScrollBtn:active { transform:scale(.92); background:#14532a; }
   .tabbtn { flex:1 0 auto; font-family:inherit; background:#0a2413; border:2px solid #14532a; color:#8fdca5;
     border-radius:14px; padding:12px 6px; font-size:13px; font-weight:bold; letter-spacing:1px; cursor:pointer;
     display:flex; align-items:center; justify-content:center; gap:6px; touch-action:manipulation;
@@ -643,6 +653,8 @@
   <button id="tabRadioBtn" class="tabbtn"><span class="e">📻</span>RADIO</button>
   <button id="tabJobsBtn" class="tabbtn"><span class="e">💠</span>JOBS</button>
 </nav>
+<button id="tabPrev" class="tabScrollBtn" aria-label="Scroll tabs left">◀</button>
+<button id="tabNext" class="tabScrollBtn" aria-label="Scroll tabs right">▶</button>
 
 <script>
 'use strict';
@@ -1129,6 +1141,41 @@ function bindTabs() {
   }
   const bf = el('btnFight');
   if (bf) onTap(bf, function () { showView('arena'); });
+}
+
+/* ---------------- tab-bar maneuver buttons (◀ ▶) ----------------
+   The tab bar is swipe-scrollable, but some embedded frames (itch.io
+   fullscreen) swallow touch gestures. These buttons scroll it
+   programmatically instead. They only appear when the bar actually
+   overflows, sit in reserved padding (never over tab labels), and
+   auto-hide per scroll direction. */
+function tabScrollMeasure() {
+  const bar = el('tabBar'), prev = el('tabPrev'), next = el('tabNext');
+  if (!bar || !prev || !next) return;
+  bar.classList.remove('hasScroll');
+  const can = bar.scrollWidth > bar.clientWidth + 2;
+  bar.classList.toggle('hasScroll', can);
+  tabScrollState();
+}
+function tabScrollState() {
+  const bar = el('tabBar'), prev = el('tabPrev'), next = el('tabNext');
+  if (!bar || !prev || !next) return;
+  if (!bar.classList.contains('hasScroll')) {
+    prev.style.display = 'none'; next.style.display = 'none'; return;
+  }
+  const max = bar.scrollWidth - bar.clientWidth;
+  prev.style.display = bar.scrollLeft > 4 ? 'flex' : 'none';
+  next.style.display = (max > 4 && bar.scrollLeft < max - 4) ? 'flex' : 'none';
+}
+function bindTabScroll() {
+  onTap('tabPrev', function () { const b = el('tabBar'); if (b) b.scrollBy({ left: -170, behavior: 'smooth' }); });
+  onTap('tabNext', function () { const b = el('tabBar'); if (b) b.scrollBy({ left: 170, behavior: 'smooth' }); });
+  const bar = el('tabBar');
+  if (bar) bar.addEventListener('scroll', tabScrollState, { passive: true });
+  window.addEventListener('resize', tabScrollMeasure);
+  window.addEventListener('orientationchange', function () { setTimeout(tabScrollMeasure, 300); });
+  setTimeout(tabScrollMeasure, 60);
+  setTimeout(tabScrollMeasure, 600);
 }
 
 /* ---------------- starfield (capped at 30, transform/opacity only) ---------------- */
@@ -3035,6 +3082,7 @@ function registerSW() {
     buildStars();
     const sb = el('soundBtn'); if (sb) sb.textContent = S.muted ? '🔇' : '🔊';
     bindTabs();
+    bindTabScroll();
     bindPet();
     bindArena();
     bindCustom();
