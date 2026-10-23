@@ -251,6 +251,15 @@
   #tabPrev { left:max(6px, calc(50% - 260px + 6px)); }
   #tabNext { right:max(6px, calc(50% - 260px + 6px)); }
   .tabScrollBtn:active { transform:scale(.92); background:#14532a; }
+  /* vertical maneuver buttons: only when the page actually scrolls */
+  .vScrollBtn { position:fixed; z-index:42; right:6px; width:36px; height:44px; display:none;
+    align-items:center; justify-content:center; font-size:16px; font-weight:bold;
+    font-family:inherit; color:#7dff9e; background:rgba(10,36,19,.78);
+    border:2px solid #1fdc5a; border-radius:10px; cursor:pointer;
+    touch-action:manipulation; opacity:.9; }
+  #scrUp { top:calc(50% - 52px); }
+  #scrDown { top:calc(50% + 8px); }
+  .vScrollBtn:active { transform:scale(.92); background:#14532a; }
   .tabbtn { flex:1 0 auto; font-family:inherit; background:#0a2413; border:2px solid #14532a; color:#8fdca5;
     border-radius:14px; padding:12px 6px; font-size:13px; font-weight:bold; letter-spacing:1px; cursor:pointer;
     display:flex; align-items:center; justify-content:center; gap:6px; touch-action:manipulation;
@@ -655,6 +664,8 @@
 </nav>
 <button id="tabPrev" class="tabScrollBtn" aria-label="Scroll tabs left">◀</button>
 <button id="tabNext" class="tabScrollBtn" aria-label="Scroll tabs right">▶</button>
+<button id="scrUp" class="vScrollBtn" aria-label="Scroll screen up">▲</button>
+<button id="scrDown" class="vScrollBtn" aria-label="Scroll screen down">▼</button>
 
 <script>
 'use strict';
@@ -1131,6 +1142,7 @@ function showView(which) {
   } catch (e) {}
   try { applyCustom(); } catch (e) {}
   try { if (typeof window.scrollTo === 'function') window.scrollTo(0, 0); } catch (e) {}
+  try { vScrollState(); tabScrollState(); } catch (e) {}
   try { SFX.tap(); } catch (e) { /* sound must never break navigation */ }
 }
 function bindTabs() {
@@ -1176,6 +1188,38 @@ function bindTabScroll() {
   window.addEventListener('orientationchange', function () { setTimeout(tabScrollMeasure, 300); });
   setTimeout(tabScrollMeasure, 60);
   setTimeout(tabScrollMeasure, 600);
+}
+
+/* ---------------- vertical maneuver buttons (▲ ▼) ----------------
+   Same idea for page scroll: itch.io's fullscreen frame can swallow
+   touch panning, so these scroll the document programmatically.
+   Only visible when the page actually overflows vertically; ▲ hides
+   at the top, ▼ hides at the bottom. Small, translucent, parked on
+   the right edge so they never cover content. */
+function vScrollMeasure() {
+  const up = el('scrUp'), down = el('scrDown');
+  if (!up || !down) return;
+  const can = document.documentElement.scrollHeight > window.innerHeight + 8;
+  if (!can) { up.style.display = 'none'; down.style.display = 'none'; return; }
+  vScrollState();
+}
+function vScrollState() {
+  const up = el('scrUp'), down = el('scrDown');
+  if (!up || !down) return;
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  if (max <= 8) { up.style.display = 'none'; down.style.display = 'none'; return; }
+  const y = window.scrollY || document.documentElement.scrollTop || 0;
+  up.style.display = y > 8 ? 'flex' : 'none';
+  down.style.display = y < max - 8 ? 'flex' : 'none';
+}
+function bindVScroll() {
+  onTap('scrUp', function () { window.scrollBy({ top: -Math.round(window.innerHeight * 0.8), behavior: 'smooth' }); });
+  onTap('scrDown', function () { window.scrollBy({ top: Math.round(window.innerHeight * 0.8), behavior: 'smooth' }); });
+  window.addEventListener('scroll', vScrollState, { passive: true });
+  window.addEventListener('resize', vScrollMeasure);
+  window.addEventListener('orientationchange', function () { setTimeout(vScrollMeasure, 300); });
+  setTimeout(vScrollMeasure, 120);
+  setTimeout(vScrollMeasure, 800);
 }
 
 /* ---------------- starfield (capped at 30, transform/opacity only) ---------------- */
@@ -3083,6 +3127,7 @@ function registerSW() {
     const sb = el('soundBtn'); if (sb) sb.textContent = S.muted ? '🔇' : '🔊';
     bindTabs();
     bindTabScroll();
+    bindVScroll();
     bindPet();
     bindArena();
     bindCustom();
