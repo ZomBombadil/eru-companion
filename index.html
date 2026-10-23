@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#031007">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="pwa-icons/icon-192.png">
-<title>Eru · Cosmic Companion v3.0 🌌</title>
+<title>Eru · Cosmic Companion v3.2 🌌</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { height:100%; }
@@ -237,9 +237,11 @@
   /* ---------- tab bar + player ---------- */
   #tabBar { position:fixed; left:50%; transform:translateX(-50%); bottom:0; z-index:40;
     width:100%; max-width:520px; display:flex; gap:8px;
+    overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+  #tabBar::-webkit-scrollbar { display:none; }
     padding:10px 14px calc(12px + env(safe-area-inset-bottom));
     background:rgba(2,10,5,.97); border-top:2px solid #1fdc5a; }
-  .tabbtn { flex:1; font-family:inherit; background:#0a2413; border:2px solid #14532a; color:#8fdca5;
+  .tabbtn { flex:1 0 auto; font-family:inherit; background:#0a2413; border:2px solid #14532a; color:#8fdca5;
     border-radius:14px; padding:12px 6px; font-size:13px; font-weight:bold; letter-spacing:1px; cursor:pointer;
     display:flex; align-items:center; justify-content:center; gap:6px; touch-action:manipulation;
     min-height:56px; }
@@ -393,7 +395,7 @@
         <div id="stageAge">🥚 Egg</div>
         <div id="powerBadge">⚡ PL 1</div>
       </div>
-      <div id="ver">v3.0</div>
+      <div id="ver">v3.2</div>
       <button id="soundBtn" title="Sound on/off" aria-label="toggle sound">🔊</button>
     </header>
 
@@ -645,7 +647,7 @@
 <script>
 'use strict';
 /* =====================================================================
-   ERU · COSMIC COMPANION v3.0 — clean rewrite
+   ERU · COSMIC COMPANION v3.2 — clean rewrite
    Pet + Battle Arena + US Radio. Single file, no dependencies.
    ===================================================================== */
 /* ---------------- bulletproof DOM helpers ---------------- */
