@@ -193,6 +193,7 @@
     letter-spacing:1px; touch-action:manipulation; }
   .rchip.active { border-color:#1fdc5a; color:#7dff9e; }
   .rchip:active { transform:scale(.95); }
+  .rchip.g[data-genre="talk"] { flex:0 0 auto; min-width:46px; padding:7px 4px; font-size:10px; }
   #rState { width:100%; margin:2px 0 6px; padding:12px; font-size:14px; font-family:inherit;
     background:#06130b; border:2px solid #1fdc5a; border-radius:14px; color:#c9ffd9; outline:none; }
   #rCount { font-size:11px; color:#4a7a5c; padding:0 4px 6px; letter-spacing:1px; }
@@ -375,6 +376,7 @@
   .custbtn .dot { width:16px; height:16px; border-radius:50%; flex:0 0 16px; }
   .custbtn.sel { border-color:#1fdc5a; box-shadow:0 0 10px rgba(31,220,90,.35); color:#7dff9e; }
   .custbtn:active { transform:scale(.95); }
+  #bgPreview { height:64px; border-radius:14px; border:2px solid #14532a; margin:2px 0 10px; background-size:220% 220%; }
   #nameRow { display:flex; gap:8px; }
   #customNameInput { flex:1; padding:13px 14px; font-size:15px; font-family:inherit; background:#06130b;
     border:2px solid #1fdc5a; border-radius:14px; color:#c9ffd9; outline:none; min-width:0; }
@@ -401,6 +403,87 @@
   #gearBadges { position:absolute; bottom:-6px; right:6px; font-size:22px; pointer-events:none; }
   #petBox.train { animation:trainPulse .6s ease; }
   @keyframes trainPulse { 0% { scale:1; } 40% { scale:1.12; } 100% { scale:1; } }
+  /* ---------- v3.3 animated minigame environments ---------- */
+  .mineEnv, .herbEnv { position:relative; border-radius:14px; overflow:hidden; padding:10px 6px 6px; margin:6px 0; }
+  .mineEnv { background:radial-gradient(ellipse at 50% 0%, #3a2a12 0%, #1a1206 55%, #0a0703 100%); }
+  .herbEnv { background:radial-gradient(ellipse at 50% 0%, #123a1e 0%, #0a2413 55%, #04140a 100%); }
+  .mineEnv .mote, .herbEnv .fly { position:absolute; pointer-events:none; animation:envFloat var(--fd,7s) ease-in-out infinite alternate; }
+  .mineEnv .mote { color:#ffd97d; font-size:12px; opacity:.7; }
+  .herbEnv .fly { color:#d6ffe0; font-size:13px; opacity:.85; text-shadow:0 0 8px rgba(57,255,106,.8); }
+  @keyframes envFloat { from { transform:translateY(0) translateX(0); opacity:.35; } to { transform:translateY(-14px) translateX(6px); opacity:.95; } }
+  .mineEnv .sway, .herbEnv .sway { display:inline-block; animation:envSway 3.2s ease-in-out infinite; transform-origin:bottom center; }
+  @keyframes envSway { 0%,100% { transform:rotate(-4deg); } 50% { transform:rotate(4deg); } }
+  .rockbtn.cracked { animation:rockPop .35s ease; }
+  @keyframes rockPop { 0% { transform:scale(1); } 40% { transform:scale(1.15) rotate(-2deg); } 100% { transform:scale(1); } }
+  .herbbtn.glow { animation:herbPulse 1s ease-in-out infinite; }
+  @keyframes herbPulse { 0%,100% { box-shadow:0 0 8px rgba(255,217,125,.4); } 50% { box-shadow:0 0 20px rgba(255,217,125,.9); } }
+  #foodMenu { flex-wrap:wrap; }
+  /* ---------- v3.3 animated stage backgrounds ---------- */
+  #stageBg { position:absolute; inset:0; z-index:0; pointer-events:none; background-size:220% 220%; animation:bgDrift 16s ease-in-out infinite alternate; }
+  @keyframes bgDrift { from { background-position:0% 50%; } to { background-position:100% 50%; } }
+  /* ---------- v3.3 music tab ---------- */
+  .albumTitle { font-size:14px; font-weight:bold; letter-spacing:2px; color:#7dff9e; margin:16px 0 4px; }
+  .mtrack { display:flex; gap:10px; align-items:center; background:rgba(6,19,11,.92); border:2px solid #14532a; border-radius:12px; padding:8px 10px; margin:6px 0; }
+  .mtrack.playing { border-color:#ffd700; box-shadow:0 0 10px rgba(255,215,0,.25); }
+  .mplay { flex:0 0 44px; height:44px; border-radius:12px; font-size:18px; background:#0a2413; border:2px solid #1fdc5a; color:#7dff9e; cursor:pointer; font-family:inherit; touch-action:manipulation; }
+  .mtitle { font-size:14px; color:#c9ffd9; }
+  #btnSiteLink { width:100%; }
+  /* ---------- v3.3 eru 8 ball ---------- */
+  #ballWrap { text-align:center; padding:10px 6px; }
+  #ballEl { font-size:120px; display:inline-block; line-height:1; cursor:pointer; }
+  #ballEl.shaking { animation:ballShake .9s ease; }
+  @keyframes ballShake { 0%,100% { transform:translateX(0) rotate(0); } 20% { transform:translateX(-14px) rotate(-8deg); } 40% { transform:translateX(12px) rotate(7deg); } 60% { transform:translateX(-10px) rotate(-5deg); } 80% { transform:translateX(8px) rotate(4deg); } }
+  #ballAnswer { min-height:64px; margin:12px 0; padding:12px; background:rgba(6,19,11,.92); border:2px solid #1fdc5a; border-radius:14px; color:#c9ffd9; font-size:15px; line-height:1.5; }
+  #ballQuestion { width:100%; padding:13px 14px; font-size:15px; font-family:inherit; background:#06130b; border:2px solid #1fdc5a; border-radius:14px; color:#c9ffd9; outline:none; margin:10px 0; box-sizing:border-box; }
+  /* ---------- v3.3 settings ---------- */
+  #settingsBtn { background:#0a2413; border:2px solid #1fdc5a; color:#7dff9e; border-radius:12px;
+    font-size:18px; width:44px; height:44px; cursor:pointer; touch-action:manipulation; }
+  #settingsBtn:active { transform:scale(.93); }
+  #settingsSheet { position:fixed; inset:0; z-index:60; display:none; }
+  #settingsSheet.open { display:block; }
+  #settingsBackdrop { position:absolute; inset:0; background:rgba(0,0,0,.62); }
+  #settingsPanel { position:absolute; left:50%; transform:translateX(-50%); bottom:0; width:100%; max-width:520px;
+    max-height:88vh; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    background:#04140a; border-top:2px solid #1fdc5a; border-left:2px solid #14532a; border-right:2px solid #14532a;
+    border-radius:20px 20px 0 0; padding:14px 16px calc(20px + env(safe-area-inset-bottom)); }
+  #settingsSheet.open #settingsPanel { animation:sheetIn .3s ease-out; }
+  #settingsHead { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+  #settingsHead .t { font-size:15px; font-weight:bold; letter-spacing:2px; color:#7dff9e; }
+  #settingsClose { width:44px; height:44px; border-radius:12px; font-size:16px; cursor:pointer; touch-action:manipulation;
+    background:#0a2413; border:2px solid #14532a; color:#8fdca5; font-family:inherit; }
+  #settingsPanel input[type=range] { width:100%; accent-color:#1fdc5a; margin:6px 0; }
+  .setVal { text-align:center; color:#7dff9e; font-size:13px; margin-bottom:2px; }
+  .setLink { width:100%; margin:6px 0; }
+  #releaseInfo { background:rgba(6,19,11,.92); border:2px solid #14532a; border-radius:12px; padding:10px 12px; color:#8fdca5; font-size:13px; line-height:1.6; margin:6px 0; }
+  #brightDim { position:fixed; inset:0; background:#000; opacity:0; pointer-events:none; z-index:200; }
+  /* ---------- v3.3 cosmic racing ---------- */
+  #raceWrap { position:relative; border:2px solid #1fdc5a; border-radius:14px; overflow:hidden; margin:6px 0; background:#0a0f0a; }
+  #raceCanvas { width:100%; height:300px; display:block; touch-action:none; }
+  #raceHud { position:absolute; top:8px; left:0; right:0; display:flex; justify-content:space-around; font-size:14px; font-weight:bold; color:#eafff0; text-shadow:0 1px 3px #000; pointer-events:none; }
+  #raceControls { display:flex; gap:16px; justify-content:space-between; align-items:center; margin:8px 0; }
+  .dpad { display:grid; grid-template-columns:repeat(3, 56px); grid-template-rows:repeat(3, 56px); gap:4px; }
+  .dpad .rcbtn { min-width:56px; min-height:56px; }
+  .dpadCenter { background:#0a2413; border:2px solid #14532a; border-radius:14px; }
+  .rcPedals { display:flex; flex-direction:column; gap:8px; }
+  .rcbtn { font-family:inherit; font-size:20px; min-width:56px; min-height:56px; border-radius:14px; cursor:pointer; touch-action:none; background:#0a2413; border:2px solid #14532a; color:#c9ffd9; }
+  .rcbtn:active, .rcbtn.held { background:#14532a; transform:scale(.94); }
+  .rcGas { background:#14532a; border-color:#1fdc5a; color:#7dff9e; font-size:16px; font-weight:bold; padding:0 22px; }
+  .rcBrake { background:#3a1212; border-color:#dc2626; color:#fca5a5; font-size:16px; font-weight:bold; padding:0 22px; }
+  /* ---------- v3.3 star vault ---------- */
+  .vroom { background:rgba(6,19,11,.92); border:2px solid #14532a; border-radius:14px; padding:12px; margin:10px 0; }
+  .vroom.infested { border-color:#dc2626; box-shadow:0 0 12px rgba(220,38,68,.35); }
+  .vroom .vtitle { font-size:15px; font-weight:bold; color:#7dff9e; letter-spacing:1px; }
+  .vroom .vdesc { font-size:12px; color:#8fdca5; line-height:1.5; margin:4px 0; }
+  .vroom .vstatus { font-size:13px; font-weight:bold; color:#eafff0; margin:6px 0; }
+  .vroom .vstatus.ready { color:#ffd700; }
+  .vrow { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  .vbtn { font-family:inherit; background:#0a2413; border:2px solid #1fdc5a; color:#7dff9e; border-radius:12px;
+    padding:10px 14px; font-size:13px; font-weight:bold; cursor:pointer; touch-action:manipulation; }
+  .vbtn:active { transform:scale(.95); }
+  .vbtn:disabled { opacity:.4; }
+  .tierHead { font-size:14px; font-weight:bold; color:#ffd700; letter-spacing:1px; margin:16px 0 4px; }
+  #shardBalVault, #shardBalShop { font-size:15px; font-weight:bold; color:#7dff9e; background:#0a2413;
+    border:2px solid #1fdc5a; border-radius:12px; padding:8px 12px; white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -414,11 +497,13 @@
         <div id="stageAge">🥚 Egg</div>
         <div id="powerBadge">⚡ PL 1</div>
       </div>
-      <div id="ver">v3.2</div>
+      <div id="ver">v3.3.1</div>
       <button id="soundBtn" title="Sound on/off" aria-label="toggle sound">🔊</button>
+      <button id="settingsBtn" title="Settings" aria-label="open settings">⚙️</button>
     </header>
 
     <div id="screen">
+      <div id="stageBg"></div>
       <div id="nightTint"></div>
       <div id="bubble" class="hidden"></div>
       <div id="petWrap">
@@ -453,6 +538,13 @@
       <button class="foodBtn" data-food="cookie"><span class="e">🍪</span>Stardust Cookie</button>
       <button class="foodBtn" data-food="berry"><span class="e">🫐</span>Nebula Berry</button>
       <button class="foodBtn" data-food="burger"><span class="e">🍔</span>Comet Burger</button>
+      <button class="foodBtn" data-food="donut"><span class="e">🍩</span>Galaxy Donut</button>
+      <button class="foodBtn" data-food="pizza"><span class="e">🍕</span>Meteor Pizza</button>
+      <button class="foodBtn" data-food="soda"><span class="e">🥤</span>Nebula Soda</button>
+      <button class="foodBtn" data-food="icecream"><span class="e">🍦</span>Comet Ice Cream</button>
+      <button class="foodBtn" data-food="apple"><span class="e">🍎</span>Solar Apple</button>
+      <button class="foodBtn" data-food="cupcake"><span class="e">🧁</span>Moon Cupcake</button>
+      <button class="foodBtn" data-food="carrot"><span class="e">🥕</span>Astro Carrot</button>
     </div>
 
     <div id="actions">
@@ -594,13 +686,80 @@
     <p class="cohBlurb">Work jobs to earn star shards 💠 and spend them on gear. Jobs cost energy — a tired Eru can't work.</p>
     <div class="cohTitle">⛏️ STAR MINING</div>
     <p class="cohBlurb">Tap rocks to crack them (2⚡ each). Some hide star shards!</p>
+    <div class="mineEnv" aria-hidden="true"><span class="mote" style="left:12%;top:18%;--fd:6s">✦</span><span class="mote" style="left:78%;top:30%;--fd:8s">✦</span><span class="mote" style="left:48%;top:12%;--fd:7s">✧</span><div style="text-align:center;font-size:20px"><span class="sway">⛏️</span> <span class="sway" style="animation-delay:.4s">💎</span> <span class="sway" style="animation-delay:.8s">🪨</span></div></div>
     <div id="mineGrid"></div>
     <button class="bigbtn" id="btnNewRocks">🪨 NEW ROCKS</button>
     <div class="cohTitle">🌿 HERB FORAGING</div>
     <p class="cohBlurb">Tap glowing herbs before they fade · 5⚡ per 30s round.</p>
+    <div class="herbEnv" aria-hidden="true"><span class="fly" style="left:15%;top:22%;--fd:6s">✨</span><span class="fly" style="left:70%;top:16%;--fd:8s">🦋</span><span class="fly" style="left:45%;top:30%;--fd:7s">✨</span><div style="text-align:center;font-size:20px"><span class="sway">🌿</span> <span class="sway" style="animation-delay:.4s">🌾</span> <span class="sway" style="animation-delay:.8s">🦋</span></div></div>
     <div id="herbArea"></div>
-    <div class="cohTitle">🛒 EQUIPMENT SHOP</div>
-    <p class="cohBlurb">Gear boosts arena stats. One weapon, one armor, one charm at a time.</p>
+    <div class="cohTitle">🏎️ COSMIC RACING</div>
+    <p class="cohBlurb">Steer with the D-pad, hold GAS to speed up, BRAKE to slow down. Dodge traffic, grab stars · 5⚡ per 45s race. Arrow keys work too.</p>
+    <div id="raceWrap"><canvas id="raceCanvas"></canvas><div id="raceHud"><span id="raceScore">⭐ 0</span><span id="raceSpeed">0 mph</span><span id="raceTime">⏱ 45</span></div></div>
+    <button class="bigbtn" id="btnRace">🏎️ START RACE</button>
+    <div id="raceControls">
+      <div class="dpad">
+        <span></span>
+        <button class="rcbtn" id="rcUp" aria-label="gas">▲</button>
+        <span></span>
+        <button class="rcbtn" id="rcLeft" aria-label="steer left">◀</button>
+        <span class="dpadCenter"></span>
+        <button class="rcbtn" id="rcRight" aria-label="steer right">▶</button>
+        <span></span>
+        <button class="rcbtn" id="rcDown" aria-label="brake">▼</button>
+        <span></span>
+      </div>
+      <div class="rcPedals">
+        <button class="rcbtn rcGas" id="rcGas">GAS</button>
+        <button class="rcbtn rcBrake" id="rcBrake">BRAKE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MUSIC VIEW ============ -->
+  <div class="view" id="viewMusic" style="display:none">
+    <div id="jobsHead">
+      <div id="jobsTitle">🎵 ZOMBOMBADIL MUSIC</div>
+    </div>
+    <p class="cohBlurb">Every track from the ZomBombadil website, right here in the app. Tracks stream from the site, so this tab needs internet — just like radio.</p>
+    <button class="bigbtn" id="btnSiteLink">🌐 VISIT THE ZOMBOMBADIL WEBSITE</button>
+    <p class="cohBlurb">✨ More generated music is on the way — new tracks will appear here as they are made.</p>
+    <audio id="musicAudio" preload="none" playsinline></audio>
+    <div id="musicList"></div>
+    <button class="bigbtn" id="btnMusicStop" style="display:none">⏹ STOP MUSIC</button>
+  </div>
+
+  <!-- ============ 8 BALL VIEW ============ -->
+  <div class="view" id="viewBall" style="display:none">
+    <div id="jobsHead">
+      <div id="jobsTitle">🔮 ERU 8 BALL</div>
+    </div>
+    <p class="cohBlurb">Ask Eru a yes-or-no question. Tap the ball or hit ASK — the crystal shakes, and the stars answer.</p>
+    <div id="ballWrap">
+      <div id="ballEl">🔮</div>
+      <div id="ballAnswer">Ask me anything…</div>
+      <input id="ballQuestion" maxlength="120" placeholder="Ask a yes/no question…" aria-label="Your question for Eru's 8 ball">
+      <button class="bigbtn" id="btnBallAsk">🔮 ASK THE BALL</button>
+    </div>
+  </div>
+
+  <!-- ============ VAULT VIEW ============ -->
+  <div class="view" id="viewVault" style="display:none">
+    <div id="jobsHead">
+      <div id="jobsTitle">🏰 STAR VAULT</div>
+      <div id="shardBalVault">💠 0</div>
+    </div>
+    <p class="cohBlurb">Build rooms for your star base. Rooms work while you are away — collect when their timers finish. RUSH gives the yield instantly, but a failed rush invites Void Mites, and a mite-infested room stops until you clear it.</p>
+    <div id="vaultRooms"></div>
+  </div>
+
+  <!-- ============ SHOP VIEW ============ -->
+  <div class="view" id="viewShop" style="display:none">
+    <div id="jobsHead">
+      <div id="jobsTitle">🛒 ITEM SHOP</div>
+      <div id="shardBalShop">💠 0</div>
+    </div>
+    <p class="cohBlurb">Gear boosts arena stats. One weapon, one armor, one charm, one outfit, and one cosmetic at a time. Higher tiers cost more shards — and hit much harder. Earn shards in Jobs, Racing, and the Star Vault.</p>
     <div id="gearShop"></div>
   </div>
 
@@ -622,6 +781,9 @@
     <div id="accRow" class="custRow"></div>
     <div class="custLabel">AURA GLOW</div>
     <div id="auraRow" class="custRow"></div>
+    <div class="custLabel">BACKGROUND</div>
+    <div id="bgRow" class="custRow"></div>
+    <div id="bgPreview"></div>
     <div class="custLabel">PET NAME</div>
     <div id="nameRow">
       <input id="customNameInput" maxlength="24" autocomplete="off" aria-label="pet name">
@@ -630,6 +792,29 @@
     <button class="bigbtn" id="customDone" style="margin-top:14px">✨ DONE</button>
   </div>
 </div>
+
+<div id="settingsSheet" role="dialog" aria-label="settings">
+  <div id="settingsBackdrop"></div>
+  <div id="settingsPanel">
+    <div id="settingsHead"><span class="t">⚙️ SETTINGS</span><button id="settingsClose" aria-label="close">✕</button></div>
+    <div class="custLabel">VOLUME</div>
+    <input id="volSlider" type="range" min="0" max="100" value="100" aria-label="volume">
+    <div class="setVal" id="volVal">100%</div>
+    <div class="custLabel">BRIGHTNESS (APP DIMMER)</div>
+    <input id="brightSlider" type="range" min="20" max="100" value="100" aria-label="brightness">
+    <div class="setVal" id="brightVal">100%</div>
+    <p class="cohBlurb">Brightness dims the app itself — your phone's system brightness stays untouched.</p>
+    <div class="custLabel">WEBSITES</div>
+    <button class="bigbtn setLink" data-site="https://zombombadil.github.io/zombombadil-site/">🌐 ZomBombadil Website</button>
+    <button class="bigbtn setLink" data-site="https://zombombadil.github.io/eru-companion/">🐣 Eru Companion on the Web</button>
+    <button class="bigbtn setLink" data-site="https://zombombadil.itch.io/eru-companion">🎮 Eru Companion on itch.io</button>
+    <button class="bigbtn setLink" data-site="https://www.youtube.com/@ZomBombadilOfficial">▶️ ZomBombadil on YouTube</button>
+    <div class="custLabel">RELEASE INFO</div>
+    <div id="releaseInfo"></div>
+    <button class="bigbtn" id="settingsDone" style="margin-top:14px">✨ DONE</button>
+  </div>
+</div>
+<div id="brightDim"></div>
 
 <audio id="radioAudio" preload="none" playsinline></audio>
 
@@ -661,6 +846,10 @@
   <button id="tabArenaBtn" class="tabbtn"><span class="e">⚔️</span>ARENA</button>
   <button id="tabRadioBtn" class="tabbtn"><span class="e">📻</span>RADIO</button>
   <button id="tabJobsBtn" class="tabbtn"><span class="e">💠</span>JOBS</button>
+  <button id="tabMusicBtn" class="tabbtn"><span class="e">🎵</span>MUSIC</button>
+  <button id="tabBallBtn" class="tabbtn"><span class="e">🔮</span>8 BALL</button>
+  <button id="tabVaultBtn" class="tabbtn"><span class="e">🏰</span>VAULT</button>
+  <button id="tabShopBtn" class="tabbtn"><span class="e">🛒</span>SHOP</button>
 </nav>
 <button id="tabPrev" class="tabScrollBtn" aria-label="Scroll tabs left">◀</button>
 <button id="tabNext" class="tabScrollBtn" aria-label="Scroll tabs right">▶</button>
@@ -721,7 +910,7 @@ function tone(freq, dur, type, when, vol) {
     const o = c.createOscillator(), g = c.createGain();
     o.type = type || 'square'; o.frequency.value = freq;
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(vol || 0.12, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0001, (vol || 0.12) * ((typeof appVol === "number") ? appVol : 1)), t + 0.01);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     o.connect(g); g.connect(c.destination);
     o.start(t); o.stop(t + dur + 0.05);
@@ -782,6 +971,13 @@ const LINES = {
   cookie: ["Stardust cookies?! You know me too well.", "Crunchy. Cosmic. Perfect. More."],
   berry: ["A Nebula Berry. Healthy. Suspiciously healthy.", "Tastes like a supernova. A small one."],
   burger: ["Comet Burger! Messy. Worth it.", "Grease of the gods. Do not judge me."],
+  donut: ["Galaxy Donut! Sprinkles from a dying star.", "Sweet, ring-shaped, cosmically approved."],
+  pizza: ["Meteor Pizza! Still hot from re-entry.", "Cheese pulls like gravity. Magnificent."],
+  soda: ["Nebula Soda! Fizzy like a supernova.", "Burp of the gods. Energizing."],
+  icecream: ["Comet Ice Cream! Cold as the void, twice as sweet.", "Brain freeze, but make it cosmic."],
+  apple: ["Solar Apple! Crunchy sunlight.", "One a day keeps the void away."],
+  cupcake: ["Moon Cupcake! Frosted with moondust.", "Small cake, big destiny."],
+  carrot: ["Astro Carrot! Grown in zero-g.", "Crunchy. Orange. Suspiciously healthy."],
   overfeed: ["More?? I am a cosmic being, not a black hole. ...Fine. One more.", "My robe is getting tight. Worth it."],
   playStart: ["A game! Catch the stars, mortal. Show me those reflexes.", "Thirty seconds. The stars fall. You catch. Go!"],
   playGood: ["Magnificent! The stars themselves applaud.", "Such reflexes! You may stay in my universe."],
@@ -909,7 +1105,14 @@ function rebirth() {
 const FOODS = {
   cookie: { hunger: 18, happy: 14, energy: 2, hygiene: 0,  line: 'cookie', fav: true },
   berry:  { hunger: 12, happy: 5,  energy: 3, hygiene: 2,  line: 'berry' },
-  burger: { hunger: 26, happy: 5,  energy: 4, hygiene: -7, line: 'burger' }
+  burger: { hunger: 26, happy: 5,  energy: 4, hygiene: -7, line: 'burger' },
+  donut:  { hunger: 16, happy: 16, energy: 2, hygiene: -4, line: 'donut' },
+  pizza:  { hunger: 30, happy: 8,  energy: 3, hygiene: -8, line: 'pizza' },
+  soda:   { hunger: 4,  happy: 10, energy: 12, hygiene: -3, line: 'soda' },
+  icecream: { hunger: 14, happy: 15, energy: 1, hygiene: -2, line: 'icecream' },
+  apple:  { hunger: 14, happy: 6,  energy: 4, hygiene: 4,  line: 'apple' },
+  cupcake:{ hunger: 15, happy: 13, energy: 2, hygiene: -3, line: 'cupcake' },
+  carrot: { hunger: 10, happy: 4,  energy: 3, hygiene: 5,  line: 'carrot' }
 };
 function feed(kind) {
   if (S.dead || gameOn) return;
@@ -962,13 +1165,16 @@ function heal() {
   save(); renderAll();
 }
 /* ---------------- mini-game: catch the falling stars ---------------- */
-let gameOn = false, gScore = 0, gStars = [], gLast = 0, gRaf = 0, gEnd = 0;
+let gameOn = false, gScore = 0, gStars = [], gLast = 0, gRaf = 0, gEnd = 0, gParts = [], gBgStars = [], gNebulae = [], gShoot = null, gShootTimer = 3;
 function startGame() {
   if (S.dead) return;
   if (S.stage === 'egg') { sfx(function(){SFX.bad();}); sayKey('eggIdle'); return; }
   if (S.sleeping) { sfx(function(){SFX.bad();}); say('Games while I sleep? Wake me, then we play.'); return; }
   if (S.energy < 12) { sfx(function(){SFX.bad();}); say('Too... tired... nap first, game later.'); return; }
-  gameOn = true; gScore = 0; gStars = [];
+  gameOn = true; gScore = 0; gStars = []; gParts = [];
+  gBgStars = []; for (let bi = 0; bi < 46; bi++) gBgStars.push({ x: Math.random(), y: Math.random(), r: Math.random() * 1.6 + 0.6, tw: Math.random() * 6.28, sp: 0.5 + Math.random() * 1.5 });
+  gNebulae = []; for (let ni = 0; ni < 3; ni++) gNebulae.push({ x: Math.random(), y: Math.random() * 0.7, r: 60 + Math.random() * 70, hue: [150, 280, 200][ni % 3], vx: (Math.random() - 0.5) * 4 });
+  gShoot = null; gShootTimer = 2 + Math.random() * 3;
   const fm = el('foodMenu'); if (fm) fm.classList.add('hidden');
   const gl = el('gameLayer'); if (gl) gl.classList.remove('hidden');
   const cv = el('gameCanvas');
@@ -991,14 +1197,47 @@ function gameLoop() {
       vy: 90 + Math.random() * 90 + (30 - tLeft) * 6, r: 14 + Math.random() * 8, tw: Math.random() * 6.28 });
   }
   ctx.clearRect(0, 0, cv.width || 300, cv.height || 300);
+  /* animated environment: twinkling starfield, drifting nebulae, moon, shooting star, catch bursts */
+  try {
+    const W = cv.width || 300, H = cv.height || 300;
+    for (const nb of gNebulae) {
+      nb.x += nb.vx * dt / W; if (nb.x < -0.2) nb.x = 1.2; if (nb.x > 1.2) nb.x = -0.2;
+      const grd = ctx.createRadialGradient(nb.x * W, nb.y * H, 0, nb.x * W, nb.y * H, nb.r);
+      grd.addColorStop(0, 'hsla(' + nb.hue + ', 80%, 45%, 0.20)'); grd.addColorStop(1, 'hsla(' + nb.hue + ', 80%, 45%, 0)');
+      ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(nb.x * W, nb.y * H, nb.r, 0, 6.29); ctx.fill();
+    }
+    ctx.fillStyle = '#eafff0';
+    for (const bs of gBgStars) {
+      bs.tw += dt * bs.sp; const a = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(bs.tw));
+      ctx.globalAlpha = a; ctx.beginPath(); ctx.arc(bs.x * W, bs.y * H, bs.r, 0, 6.29); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.font = '34px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('\u1f319', W - 32, 34);
+    gShootTimer -= dt;
+    if (gShootTimer <= 0 && !gShoot) { gShoot = { x: Math.random() * W * 0.7, y: Math.random() * H * 0.3, vx: 260, vy: 130, life: 0.7 }; }
+    if (gShoot) {
+      gShoot.x += gShoot.vx * dt; gShoot.y += gShoot.vy * dt; gShoot.life -= dt;
+      ctx.strokeStyle = 'rgba(234,255,240,0.85)'; ctx.lineWidth = 2; ctx.beginPath();
+      ctx.moveTo(gShoot.x, gShoot.y); ctx.lineTo(gShoot.x - 46, gShoot.y - 23); ctx.stroke();
+      if (gShoot.life <= 0 || gShoot.x > W) { gShoot = null; gShootTimer = 3 + Math.random() * 5; }
+    }
+    for (let pi = gParts.length - 1; pi >= 0; pi--) {
+      const p = gParts[pi]; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 60 * dt; p.life -= dt;
+      if (p.life <= 0) { gParts.splice(pi, 1); continue; }
+      ctx.globalAlpha = Math.max(0, p.life / 0.6); ctx.font = '16px serif'; ctx.fillText('\u2728', p.x, p.y);
+    }
+    ctx.globalAlpha = 1;
+  } catch (e) {}
   for (let i = gStars.length - 1; i >= 0; i--) {
     const s = gStars[i];
     s.y += s.vy * dt; s.tw += dt * 6;
     if (s.y > (cv.height || 300) + 30) { gStars.splice(i, 1); sfx(function(){SFX.miss();}); continue; }
     const pulse = 1 + Math.sin(s.tw) * 0.15;
     try {
+      ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(Math.sin(s.tw) * 0.4);
       ctx.font = (s.r * 2 * pulse) + 'px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('⭐', s.x, s.y);
+      ctx.fillText('\u2b50', 0, 0); ctx.restore();
     } catch (e) {}
   }
   const gs = el('gameScore'), gt = el('gameTime');
@@ -1020,6 +1259,7 @@ function gameTap(ev) {
     const s = gStars[i], dx = s.x - x, dy = s.y - y, rr = s.r * 2.2;
     if (dx * dx + dy * dy < rr * rr) {
       gStars.splice(i, 1); gScore++;
+      for (let pi = 0; pi < 6; pi++) gParts.push({ x: s.x, y: s.y, vx: (Math.random() - 0.5) * 160, vy: -40 - Math.random() * 90, life: 0.6 });
       sfx(function(){SFX.catch();}); sparkleBurst(2);
       const gs = el('gameScore'); if (gs) gs.textContent = '⭐ ' + gScore;
       return;
@@ -1123,8 +1363,8 @@ function applyOfflineProgress() {
 /* ---------------- THE tab system: one small auditable function ----------------
    Sound can never block navigation: the switch happens first, sound after,
    inside try/catch. Body class AND direct style.display both set. */
-const VIEW_IDS = { pet: 'viewPet', arena: 'viewArena', radio: 'viewRadio', jobs: 'viewJobs' };
-const TAB_IDS  = { pet: 'tabPetBtn', arena: 'tabArenaBtn', radio: 'tabRadioBtn', jobs: 'tabJobsBtn' };
+const VIEW_IDS = { pet: 'viewPet', arena: 'viewArena', radio: 'viewRadio', jobs: 'viewJobs', music: 'viewMusic', ball: 'viewBall', vault: 'viewVault', shop: 'viewShop' };
+const TAB_IDS  = { pet: 'tabPetBtn', arena: 'tabArenaBtn', radio: 'tabRadioBtn', jobs: 'tabJobsBtn', music: 'tabMusicBtn', ball: 'tabBallBtn', vault: 'tabVaultBtn', shop: 'tabShopBtn' };
 let currentView = 'pet';
 function showView(which) {
   if (!VIEW_IDS[which]) which = 'pet';
@@ -1138,8 +1378,11 @@ function showView(which) {
   try { document.body.classList.toggle('view-radio', which === 'radio'); } catch (e) {}
   try { if (which === 'radio') bootRadio(); } catch (e) {}
   try {
-    if (which === 'jobs') { renderGearShop(); renderShards(); renderHerbs(); renderPower(); }
+    if (which === 'jobs') { renderShards(); renderHerbs(); renderPower(); }
   } catch (e) {}
+  try { if (which === 'music') renderMusic(); } catch (e) {}
+  try { if (which === 'vault') renderVault(); } catch (e) {}
+  try { if (which === 'shop') { renderGearShop(); renderShards(); } } catch (e) {}
   try { applyCustom(); } catch (e) {}
   try { if (typeof window.scrollTo === 'function') window.scrollTo(0, 0); } catch (e) {}
   try { vScrollState(); tabScrollState(); } catch (e) {}
@@ -1270,7 +1513,10 @@ const ACCESSORIES = [
   { id: 'sunglasses', emoji: '😎', name: 'Sunglasses' },
   { id: 'monocle', emoji: '🧐', name: 'Monocle' },
   { id: 'headphones', emoji: '🎧', name: 'Headphones' },
-  { id: 'bandana', emoji: '🧣', name: 'Bandana' }
+  { id: 'bandana', emoji: '🧣', name: 'Bandana' },
+  { id: 'flower', emoji: '🌸', name: 'Flower' },
+  { id: 'cap', emoji: '🧢', name: 'Star Cap' },
+  { id: 'partyhat', emoji: '🎉', name: 'Party Hat' }
 ];
 /* 'halo' is now a real accessory (was migrated to crown before it existed). */
 const ACC_MIGRATE = { tophat: 'hat', shades: 'glasses', party: 'bow', flower: 'bow', star: 'none', moon: 'none', bolt: 'none' };
@@ -1280,9 +1526,11 @@ const AURAS = [
   { id: 'purple', name: 'Purple', css: '0 0 26px rgba(167,139,250,.85)', dot: '#a78bfa' },
   { id: 'gold', name: 'Gold', css: '0 0 26px rgba(255,215,0,.85)', dot: '#ffd700' },
   { id: 'blue', name: 'Blue', css: '0 0 26px rgba(59,130,246,.85)', dot: '#3b82f6' },
-  { id: 'red', name: 'Red', css: '0 0 26px rgba(239,68,68,.85)', dot: '#ef4444' }
+  { id: 'red', name: 'Red', css: '0 0 26px rgba(239,68,68,.85)', dot: '#ef4444' },
+  { id: 'pink', name: 'Pink', css: '0 0 26px rgba(244,114,182,.85)', dot: '#f472b6' },
+  { id: 'teal', name: 'Teal', css: '0 0 26px rgba(45,212,191,.85)', dot: '#2dd4bf' }
 ];
-function defaultCustom() { return { base: 'eru', color: 'green', eyes: 'round', accessory: 'none', aura: 'green', theme: 'cosmic' }; }
+function defaultCustom() { return { base: 'eru', color: 'green', eyes: 'round', accessory: 'none', aura: 'green', theme: 'cosmic', bg: 'cosmic' }; }
 /* ---------------- avatar bases: distinct fantasy SVG species ---------------- */
 const AVATAR_COLORS = [
   { id: 'green', name: 'Cosmic Green', main: '#39ff6a', dark: '#14532a', light: '#c9ffd9', accent: '#ffd700', hue: 0, sat: 1 },
@@ -1290,12 +1538,17 @@ const AVATAR_COLORS = [
   { id: 'ember', name: 'Ember Red', main: '#f87171', dark: '#7f1d1d', light: '#fecaca', accent: '#fbbf24', hue: 230, sat: 1.4 },
   { id: 'ocean', name: 'Ocean Blue', main: '#38bdf8', dark: '#0c4a6e', light: '#bae6fd', accent: '#f0abfc', hue: 110, sat: 1.3 },
   { id: 'gold', name: 'Solar Gold', main: '#fbbf24', dark: '#92400e', light: '#fef3c7', accent: '#f87171', hue: 290, sat: 1.5 },
-  { id: 'pink', name: 'Cosmic Pink', main: '#f472b6', dark: '#9d174d', light: '#fce7f3', accent: '#a78bfa', hue: 195, sat: 1.6 }
+  { id: 'pink', name: 'Cosmic Pink', main: '#f472b6', dark: '#9d174d', light: '#fce7f3', accent: '#a78bfa', hue: 195, sat: 1.6 },
+  { id: 'teal', name: 'Cosmic Teal', main: '#2dd4bf', dark: '#134e4a', light: '#ccfbf1', accent: '#fbbf24', hue: 40, sat: 1.2 },
+  { id: 'crimson', name: 'Crimson Star', main: '#fb7185', dark: '#881337', light: '#ffe4e6', accent: '#fbbf24', hue: 215, sat: 1.3 }
 ];
 const AVATAR_EYES = [
   { id: 'round', name: 'Round' },
   { id: 'happy', name: 'Happy' },
-  { id: 'sleepy', name: 'Sleepy' }
+  { id: 'sleepy', name: 'Sleepy' },
+  { id: 'star', name: 'Star' },
+  { id: 'wink', name: 'Wink' },
+  { id: 'sparkle', name: 'Sparkle' }
 ];
 const AVATAR_BASES = [
   { id: 'eru', name: 'Eru · Wizard', emoji: '🧙' },
@@ -1307,14 +1560,17 @@ const AVATAR_BASES = [
   { id: 'knight', name: 'Knight', emoji: '⚔️' },
   { id: 'faerie', name: 'Faerie', emoji: '🧚' },
   { id: 'dwarf', name: 'Dwarf', emoji: '🧔' },
-  { id: 'demon', name: 'Demon', emoji: '😈' }
+  { id: 'demon', name: 'Demon', emoji: '😈' },
+  { id: 'phoenix', name: 'Phoenix', emoji: '🔥' },
+  { id: 'slime', name: 'Star Slime', emoji: '🫧' },
+  { id: 'robot', name: 'Cosmo Bot', emoji: '🤖' }
 ];
 /* Accessories that cannot fit a base are DISABLED for it (never misaligned):
    the Knight wears a helm, so hat + crown do not fit — glasses + bow still do. */
 /* Knight helm occupies the head: ALL head items blocked (hat, crown, beanie,
    halo, headphones, bandana). Eye items (glasses, sunglasses, monocle) + bow
    still fit and stay enabled. */
-const AV_DISABLED = { knight: ['hat', 'crown', 'beanie', 'halo', 'headphones', 'bandana'] };
+const AV_DISABLED = { knight: ['hat', 'crown', 'beanie', 'halo', 'headphones', 'bandana', 'cap', 'partyhat'] };
 /* Per-base anchor points (200x200 viewBox). Accessories are computed from THESE,
    never from a global offset — hat bottom = head-top anchor, glasses centered on
    the eye anchor, bow at the side-of-head anchor. */
@@ -1328,7 +1584,10 @@ const AV_ANCHORS = {
   knight:  { hat: { cx: 100, y: 60, w: 52 }, eyes: { x1: 86, x2: 114, y: 112, r: 5 }, bow: { x: 150, y: 96 } },
   faerie:  { hat: { cx: 100, y: 62, w: 36 }, eyes: { x1: 88, x2: 112, y: 90, r: 5 }, bow: { x: 126, y: 68 } },
   dwarf:   { hat: { cx: 100, y: 46, w: 54 }, eyes: { x1: 82, x2: 118, y: 88, r: 6 }, bow: { x: 148, y: 70 } },
-  demon:   { hat: { cx: 100, y: 48, w: 40 }, eyes: { x1: 82, x2: 118, y: 92, r: 6 }, bow: { x: 150, y: 74 } }
+  demon:   { hat: { cx: 100, y: 48, w: 40 }, eyes: { x1: 82, x2: 118, y: 92, r: 6 }, bow: { x: 150, y: 74 } },
+  phoenix: { hat: { cx: 100, y: 40, w: 44 }, eyes: { x1: 84, x2: 116, y: 84, r: 6 }, bow: { x: 146, y: 60 } },
+  slime:   { hat: { cx: 100, y: 52, w: 58 }, eyes: { x1: 82, x2: 118, y: 92, r: 7 }, bow: { x: 152, y: 74 } },
+  robot:   { hat: { cx: 100, y: 38, w: 52 }, eyes: { x1: 82, x2: 118, y: 88, r: 6 }, bow: { x: 148, y: 66 } }
 };
 function avatarBaseByIdOrNull(id) { for (var i = 0; i < AVATAR_BASES.length; i++) if (AVATAR_BASES[i].id === id) return AVATAR_BASES[i]; return null; }
 function avatarColorByIdOrNull(id) { for (var i = 0; i < AVATAR_COLORS.length; i++) if (AVATAR_COLORS[i].id === id) return AVATAR_COLORS[i]; return null; }
@@ -1336,6 +1595,9 @@ function avatarColorById(id) { return avatarColorByIdOrNull(id) || AVATAR_COLORS
 function avEyes(style, x1, x2, y, r) {
   if (style === 'happy') return '<path d="M' + (x1 - r) + ',' + y + ' Q' + x1 + ',' + (y - r * 1.4) + ' ' + (x1 + r) + ',' + y + '" fill="none" stroke="#031007" stroke-width="3" stroke-linecap="round"/><path d="M' + (x2 - r) + ',' + y + ' Q' + x2 + ',' + (y - r * 1.4) + ' ' + (x2 + r) + ',' + y + '" fill="none" stroke="#031007" stroke-width="3" stroke-linecap="round"/>';
   if (style === 'sleepy') return '<line x1="' + (x1 - r) + '" y1="' + y + '" x2="' + (x1 + r) + '" y2="' + y + '" stroke="#031007" stroke-width="3" stroke-linecap="round"/><line x1="' + (x2 - r) + '" y1="' + y + '" x2="' + (x2 + r) + '" y2="' + y + '" stroke="#031007" stroke-width="3" stroke-linecap="round"/>';
+  if (style === 'star') return '<text x="' + x1 + '" y="' + (y + r * 0.7) + '" font-size="' + (r * 2.2) + '" text-anchor="middle" fill="#ffd700" stroke="#031007" stroke-width="0.5">\u2605</text><text x="' + x2 + '" y="' + (y + r * 0.7) + '" font-size="' + (r * 2.2) + '" text-anchor="middle" fill="#ffd700" stroke="#031007" stroke-width="0.5">\u2605</text>';
+  if (style === 'sparkle') return '<text x="' + x1 + '" y="' + (y + r * 0.7) + '" font-size="' + (r * 2.2) + '" text-anchor="middle" fill="#e9d5ff">\u2726</text><text x="' + x2 + '" y="' + (y + r * 0.7) + '" font-size="' + (r * 2.2) + '" text-anchor="middle" fill="#e9d5ff">\u2726</text>';
+  if (style === 'wink') return '<circle cx="' + x1 + '" cy="' + y + '" r="' + r + '" fill="#031007"/><circle cx="' + (x1 + r * 0.35) + '" cy="' + (y - r * 0.35) + '" r="' + (r * 0.35) + '" fill="#fff"/><path d="M' + (x2 - r) + ',' + y + ' Q' + x2 + ',' + (y - r * 1.4) + ' ' + (x2 + r) + ',' + y + '" fill="none" stroke="#031007" stroke-width="3" stroke-linecap="round"/>';
   return '<circle cx="' + x1 + '" cy="' + y + '" r="' + r + '" fill="#031007"/><circle cx="' + (x1 + r * 0.35) + '" cy="' + (y - r * 0.35) + '" r="' + (r * 0.35) + '" fill="#fff"/><circle cx="' + x2 + '" cy="' + y + '" r="' + r + '" fill="#031007"/><circle cx="' + (x2 + r * 0.35) + '" cy="' + (y - r * 0.35) + '" r="' + (r * 0.35) + '" fill="#fff"/>';
 }
 function avMouth(x, y, w) { return '<path d="M' + (x - w) + ',' + y + ' Q' + x + ',' + (y + w * 0.9) + ' ' + (x + w) + ',' + y + '" fill="none" stroke="#031007" stroke-width="2.5" stroke-linecap="round"/>'; }
@@ -1359,9 +1621,33 @@ function avAccSVG(id, A, P) {
     return '<g><path d="M' + (hcx - hw / 2) + ',' + hy2 + ' Q' + hcx + ',' + (hy2 - hbh) + ' ' + (hcx + hw / 2) + ',' + hy2 + '" fill="none" stroke="#1f2937" stroke-width="5" stroke-linecap="round"/><rect x="' + (hcx - hw / 2 - cw / 2) + '" y="' + (hy2 - 2) + '" width="' + cw + '" height="' + chh + '" rx="4" fill="' + P.dark + '" stroke="#0b1220" stroke-width="1.5"/><rect x="' + (hcx + hw / 2 - cw / 2) + '" y="' + (hy2 - 2) + '" width="' + cw + '" height="' + chh + '" rx="4" fill="' + P.dark + '" stroke="#0b1220" stroke-width="1.5"/><circle cx="' + (hcx - hw / 2) + '" cy="' + (hy2 + 5) + '" r="2" fill="' + P.accent + '"/><circle cx="' + (hcx + hw / 2) + '" cy="' + (hy2 + 5) + '" r="2" fill="' + P.accent + '"/></g>'; }
   if (id === 'bandana') { var nw = A.hat.w, ncx = A.hat.cx, ny = A.hat.y;
     return '<g><path d="M' + (ncx - nw / 2) + ',' + (ny + 6) + ' L' + (ncx - nw / 2) + ',' + (ny - 4) + ' Q' + ncx + ',' + (ny - 8) + ' ' + (ncx + nw / 2) + ',' + (ny - 4) + ' L' + (ncx + nw / 2) + ',' + (ny + 6) + ' Q' + ncx + ',' + (ny + 2) + ' ' + (ncx - nw / 2) + ',' + (ny + 6) + ' Z" fill="' + P.accent + '" stroke="' + P.dark + '" stroke-width="1.5" stroke-linejoin="round"/><circle cx="' + (ncx + nw / 2) + '" cy="' + ny + '" r="3.5" fill="' + P.accent + '" stroke="' + P.dark + '" stroke-width="1"/><path d="M' + (ncx + nw / 2 + 2) + ',' + (ny + 2) + ' L' + (ncx + nw / 2 + 12) + ',' + (ny + 8) + '" stroke="' + P.accent + '" stroke-width="3" stroke-linecap="round"/><path d="M' + (ncx + nw / 2 + 2) + ',' + (ny + 4) + ' L' + (ncx + nw / 2 + 11) + ',' + (ny + 14) + '" stroke="' + P.accent + '" stroke-width="3" stroke-linecap="round"/></g>'; }
+  if (id === 'flower') { var fx = A.bow.x, fy = A.bow.y; var pet = ''; var offs = [[0,-9],[9,0],[0,9],[-9,0],[6,-6],[-6,6]]; for (var fi = 0; fi < offs.length; fi++) pet += '<circle cx="' + (fx + offs[fi][0]) + '" cy="' + (fy + offs[fi][1]) + '" r="5" fill="#f9a8d4" stroke="#9d174d" stroke-width="1"/>'; return '<g>' + pet + '<circle cx="' + fx + '" cy="' + fy + '" r="4.5" fill="#fbbf24" stroke="#92400e" stroke-width="1"/></g>'; }
+  if (id === 'cap') { var cw2 = A.hat.w, ccx = A.hat.cx, cy2 = A.hat.y, ch2 = Math.max(10, Math.min(16, Math.round(cw2 * 0.35))); return '<g><path d="M' + (ccx - cw2 / 2) + ',' + cy2 + ' Q' + (ccx - cw2 / 2) + ',' + (cy2 - ch2) + ' ' + ccx + ',' + (cy2 - ch2) + ' Q' + (ccx + cw2 / 2) + ',' + (cy2 - ch2) + ' ' + (ccx + cw2 / 2) + ',' + cy2 + ' Z" fill="' + P.main + '" stroke="' + P.dark + '" stroke-width="2.5" stroke-linejoin="round"/><rect x="' + ccx + '" y="' + (cy2 - 5) + '" width="' + Math.round(cw2 * 0.55) + '" height="6" rx="3" fill="' + P.dark + '"/><circle cx="' + ccx + '" cy="' + (cy2 - ch2) + '" r="3" fill="' + P.accent + '"/></g>'; }
+  if (id === 'partyhat') { var pw = A.hat.w * 0.6, pcx = A.hat.cx, py = A.hat.y, ph = Math.max(12, Math.min(16, Math.round(pw * 0.8))); return '<g><polygon points="' + (pcx - pw / 2) + ',' + py + ' ' + (pcx + pw / 2) + ',' + py + ' ' + pcx + ',' + (py - ph) + '" fill="' + P.accent + '" stroke="' + P.dark + '" stroke-width="2" stroke-linejoin="round"/><line x1="' + (pcx - pw * 0.28) + '" y1="' + (py - ph * 0.33) + '" x2="' + (pcx + pw * 0.28) + '" y2="' + (py - ph * 0.33) + '" stroke="#fff" stroke-width="2.5"/><line x1="' + (pcx - pw * 0.15) + '" y1="' + (py - ph * 0.66) + '" x2="' + (pcx + pw * 0.15) + '" y2="' + (py - ph * 0.66) + '" stroke="#fff" stroke-width="2.5"/><circle cx="' + pcx + '" cy="' + (py - ph + 1) + '" r="3" fill="#f472b6" stroke="' + P.dark + '" stroke-width="1.5"/></g>'; }
   return '';
 }
 const AV_DRAW = {
+  phoenix: function (P, eyes) {
+    return '<path d="M30,150 Q20,110 48,96 Q70,120 60,150 Z" fill="' + P.accent + '" stroke="' + P.dark + '" stroke-width="3" stroke-linejoin="round"/>'
+      + '<path d="M170,150 Q180,110 152,96 Q130,120 140,150 Z" fill="' + P.accent + '" stroke="' + P.dark + '" stroke-width="3" stroke-linejoin="round"/>'
+      + '<ellipse cx="100" cy="130" rx="46" ry="40" fill="' + P.main + '" stroke="' + P.dark + '" stroke-width="4"/>'
+      + '<ellipse cx="100" cy="140" rx="24" ry="20" fill="' + P.light + '"/>'
+      + '<circle cx="100" cy="76" r="36" fill="' + P.main + '" stroke="' + P.dark + '" stroke-width="4"/>'
+      + '<polygon points="100,58 92,40 108,40" fill="' + P.accent + '" stroke="' + P.dark + '" stroke-width="2" stroke-linejoin="round"/>'
+      + '<polygon points="92,88 108,88 100,100" fill="#fbbf24" stroke="' + P.dark + '" stroke-width="2" stroke-linejoin="round"/>'
+      + avEyes(eyes, 84, 116, 84, 6);
+  },
+  slime: function (P, eyes) {
+    return '<path d="M100,60 Q150,60 158,110 Q164,150 140,158 Q100,166 60,158 Q36,150 42,110 Q50,60 100,60 Z" fill="' + P.main + '" stroke="' + P.dark + '" stroke-width="4" stroke-linejoin="round"/>'
+      + '<ellipse cx="78" cy="92" rx="14" ry="9" fill="#ffffff" opacity="0.55" transform="rotate(-20 78 92)"/>'
+      + avEyes(eyes, 82, 118, 92, 7) + avMouth(100, 118, 10);
+  },
+  robot: function (P, eyes) {
+    return '<line x1="100" y1="52" x2="100" y2="34" stroke="' + P.dark + '" stroke-width="4" stroke-linecap="round"/><circle cx="100" cy="30" r="7" fill="' + P.accent + '" stroke="' + P.dark + '" stroke-width="2"/>'
+      + '<rect x="52" y="52" width="96" height="92" rx="18" fill="' + P.main + '" stroke="' + P.dark + '" stroke-width="4"/>'
+      + '<rect x="40" y="84" width="12" height="26" rx="5" fill="' + P.dark + '"/><rect x="148" y="84" width="12" height="26" rx="5" fill="' + P.dark + '"/>'
+      + avEyes(eyes, 82, 118, 88, 6) + avMouth(100, 120, 10);
+  },
   dragon: function (P, eyes) {
     return '<ellipse cx="100" cy="128" rx="56" ry="46" fill="' + P.main + '" stroke="' + P.dark + '" stroke-width="4"/>'
       + '<ellipse cx="100" cy="138" rx="30" ry="26" fill="' + P.light + '"/>'
@@ -1472,6 +1758,24 @@ function avatarSVGFor(baseId, colorId, eyesId, accId) {
   return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">' + body + acc + '</svg>';
 }
 function avatarSVG() { return avatarSVGFor(custom.base, custom.color, custom.eyes, custom.accessory); }
+/* ---------------- stage backgrounds: animated gradient scenes ---------------- */
+const BACKGROUNDS = [
+  { id: 'cosmic', name: 'Cosmic Green', emoji: '💚', css: 'radial-gradient(ellipse at 50% 120%, #062b16 0%, #020a05 55%, #000 100%)' },
+  { id: 'nebula', name: 'Nebula Dreams', emoji: '🌌', css: 'radial-gradient(ellipse at 20% 20%, #4c1d95 0%, transparent 55%), radial-gradient(ellipse at 80% 30%, #9d174d 0%, transparent 55%), linear-gradient(180deg, #12081f, #020a05)' },
+  { id: 'ocean', name: 'Deep Ocean', emoji: '🌊', css: 'linear-gradient(180deg, #0c4a6e 0%, #075985 45%, #082f49 100%)' },
+  { id: 'ember', name: 'Ember Night', emoji: '🔥', css: 'radial-gradient(ellipse at 50% 100%, #7f1d1d 0%, #450a0a 55%, #000 100%)' },
+  { id: 'forest', name: 'Moonlit Forest', emoji: '🌲', css: 'linear-gradient(180deg, #14532a 0%, #052e16 55%, #020a05 100%)' },
+  { id: 'sunset', name: 'Starset', emoji: '🌇', css: 'linear-gradient(180deg, #7c2d12 0%, #9d174d 45%, #1e1b4b 100%)' },
+  { id: 'midnight', name: 'Midnight Void', emoji: '🌙', css: 'linear-gradient(180deg, #0b1220 0%, #1e1b4b 55%, #000 100%)' },
+  { id: 'candy', name: 'Cotton Candy Sky', emoji: '🍬', css: 'linear-gradient(180deg, #9d174d 0%, #6d28d9 50%, #0ea5e9 100%)' }
+];
+function bgByIdOrNull(id) { for (var i = 0; i < BACKGROUNDS.length; i++) if (BACKGROUNDS[i].id === id) return BACKGROUNDS[i]; return null; }
+function applyStageBg() {
+  try {
+    var b = bgByIdOrNull(custom.bg) || BACKGROUNDS[0];
+    var sbg = el('stageBg'); if (sbg) sbg.style.background = b.css;
+  } catch (e) {}
+}
 function loadCustom() {
   try {
     const raw = localStorage.getItem(CUSTOM_KEY);
@@ -1487,7 +1791,8 @@ function loadCustom() {
     return {
       base: base, color: color, eyes: eyes, accessory: acc,
       aura: typeof c.aura === 'string' ? c.aura : d.aura,
-      theme: typeof c.theme === 'string' ? c.theme : d.theme
+      theme: typeof c.theme === 'string' ? c.theme : d.theme,
+      bg: (typeof c.bg === 'string' && bgByIdOrNull(c.bg)) ? c.bg : d.bg
     };
   } catch (e) { return defaultCustom(); }
 }
@@ -1525,11 +1830,13 @@ function applyCustom() {
     const fs = el('fightSvg'); if (fs) fs.innerHTML = svg;
     const pv = el('customPreviewImg'); if (pv) { if (isEru && pi && pi.src) pv.src = pi.src; pv.style.display = isEru ? '' : 'none'; pv.style.filter = isEru ? themeFilter() : ''; }
     const pvs = el('customPreviewSvg'); if (pvs) pvs.innerHTML = svg;
-    const pvw = el('customPreviewWrap'); if (pvw) pvw.style.boxShadow = aura.css;
+    const pvw = el('customPreviewWrap'); if (pvw) { pvw.style.boxShadow = aura.css; pvw.style.background = (bgByIdOrNull(custom.bg) || BACKGROUNDS[0]).css; }
+    const bgp = el('bgPreview'); if (bgp) bgp.style.background = (bgByIdOrNull(custom.bg) || BACKGROUNDS[0]).css;
     const acc = el('accessory'); if (acc) acc.textContent = '';
     const fa = el('fightAcc'); if (fa) fa.textContent = '';
     const pa = el('customPreviewAcc'); if (pa) pa.textContent = '';
     const pn = el('customPreviewName'); if (pn) pn.textContent = S.name || 'ERU';
+    applyStageBg();
   } catch (e) {}
 }
 function renderCustomRows() {
@@ -1574,6 +1881,9 @@ function renderCustomRows() {
     const nm = document.createElement('span'); nm.textContent = u.name;
     b.appendChild(dot); b.appendChild(nm);
   }, function (id) { custom.aura = id; });
+  mark('bgRow', BACKGROUNDS, function () { return custom.bg; }, function (b, t) {
+    b.textContent = (t.emoji ? t.emoji + ' ' : '') + t.name;
+  }, function (id) { custom.bg = id; });
 }
 function openCustomSheet() {
   const sh = el('customSheet'); if (!sh) return;
@@ -1814,9 +2124,38 @@ function fallbackCopy(ta) {
 /* ================= A3: TRAINING · JOBS · GEAR ================= */
 const A3_KEY = 'eru-a3-v1';
 const GEAR = [
-  { id: 'blade', slot: 'weapon', name: 'Comet Blade', emoji: '🗡️', cost: 40, desc: '+3 ATK', atk: 3, hp: 0, crit: 0 },
-  { id: 'shield', slot: 'armor', name: 'Nebula Shield', emoji: '🛡️', cost: 40, desc: '+25 HP', atk: 0, hp: 25, crit: 0 },
-  { id: 'charm', slot: 'charm', name: 'Lucky Star Charm', emoji: '🍀', cost: 60, desc: '+8% crit', atk: 0, hp: 0, crit: 0.08 }
+  // --- Tier 1 · Starlight ---
+  { id: 'dagger', slot: 'weapon', tier: 1, name: 'Moon Dagger', emoji: '🌙', cost: 30, desc: '+2 ATK', atk: 2, hp: 0, crit: 0 },
+  { id: 'blade', slot: 'weapon', tier: 1, name: 'Comet Blade', emoji: '🗡️', cost: 40, desc: '+3 ATK', atk: 3, hp: 0, crit: 0 },
+  { id: 'robe', slot: 'armor', tier: 1, name: 'Moon Robe', emoji: '🧥', cost: 30, desc: '+15 HP', atk: 0, hp: 15, crit: 0 },
+  { id: 'shield', slot: 'armor', tier: 1, name: 'Nebula Shield', emoji: '🛡️', cost: 40, desc: '+25 HP', atk: 0, hp: 25, crit: 0 },
+  { id: 'moonstone', slot: 'charm', tier: 1, name: 'Moonstone', emoji: '🪨', cost: 30, desc: '+4% crit', atk: 0, hp: 0, crit: 0.04 },
+  { id: 'arobe', slot: 'outfit', tier: 1, name: 'Apprentice Robe', emoji: '🧙', cost: 25, desc: '+1 ATK, +10 HP', atk: 1, hp: 10, crit: 0 },
+  { id: 'ribbon', slot: 'cosmetic', tier: 1, name: 'Star Ribbon', emoji: '🎀', cost: 20, desc: 'Cosmetic — pure shine, no combat stats.', atk: 0, hp: 0, crit: 0 },
+  // --- Tier 2 · Moonlit ---
+  { id: 'spear', slot: 'weapon', tier: 2, name: 'Star Spear', emoji: '✨', cost: 90, desc: '+6 ATK', atk: 6, hp: 0, crit: 0 },
+  { id: 'starplate', slot: 'armor', tier: 2, name: 'Starplate', emoji: '🦺', cost: 90, desc: '+50 HP', atk: 0, hp: 50, crit: 0 },
+  { id: 'charm', slot: 'charm', tier: 2, name: 'Lucky Star Charm', emoji: '🍀', cost: 60, desc: '+8% crit', atk: 0, hp: 0, crit: 0.08 },
+  { id: 'cloak', slot: 'outfit', tier: 2, name: "Traveler's Cloak", emoji: '🧣', cost: 80, desc: '+2 ATK, +25 HP', atk: 2, hp: 25, crit: 0 },
+  { id: 'halo', slot: 'cosmetic', tier: 2, name: 'Moon Halo', emoji: '💍', cost: 70, desc: 'Cosmetic — pure shine, no combat stats.', atk: 0, hp: 0, crit: 0 },
+  // --- Tier 3 · Voidforged ---
+  { id: 'vaxe', slot: 'weapon', tier: 3, name: 'Void Axe', emoji: '🪓', cost: 200, desc: '+11 ATK', atk: 11, hp: 0, crit: 0 },
+  { id: 'vmail', slot: 'armor', tier: 3, name: 'Void Mail', emoji: '⛓️', cost: 200, desc: '+90 HP', atk: 0, hp: 90, crit: 0 },
+  { id: 'ctail', slot: 'charm', tier: 3, name: 'Comet Tail', emoji: '💫', cost: 160, desc: '+14% crit', atk: 0, hp: 0, crit: 0.14 },
+  { id: 'tabard', slot: 'outfit', tier: 3, name: "Knight's Tabard", emoji: '🎽', cost: 180, desc: '+4 ATK, +50 HP', atk: 4, hp: 50, crit: 0 },
+  { id: 'vwings', slot: 'cosmetic', tier: 3, name: 'Void Wings', emoji: '🦇', cost: 160, desc: 'Cosmetic — pure shine, no combat stats.', atk: 0, hp: 0, crit: 0 },
+  // --- Tier 4 · Solar ---
+  { id: 'sgsword', slot: 'weapon', tier: 4, name: 'Solar Greatsword', emoji: '☀️', cost: 450, desc: '+18 ATK', atk: 18, hp: 0, crit: 0 },
+  { id: 'saegis', slot: 'armor', tier: 4, name: 'Solar Aegis', emoji: '🔆', cost: 450, desc: '+150 HP', atk: 0, hp: 150, crit: 0 },
+  { id: 'hstar', slot: 'charm', tier: 4, name: 'Heart of a Star', emoji: '❤️', cost: 400, desc: '+22% crit', atk: 0, hp: 0, crit: 0.22 },
+  { id: 'regalia', slot: 'outfit', tier: 4, name: 'Royal Regalia', emoji: '🎩', cost: 400, desc: '+8 ATK, +100 HP', atk: 8, hp: 100, crit: 0 },
+  { id: 'saura', slot: 'cosmetic', tier: 4, name: 'Solar Aura', emoji: '🌟', cost: 350, desc: 'Cosmetic — pure shine, no combat stats.', atk: 0, hp: 0, crit: 0 },
+  // --- Tier 5 · Ainur ---
+  { id: 'wrath', slot: 'weapon', tier: 5, name: 'Wrath of the Ainur', emoji: '⚡', cost: 900, desc: '+30 ATK', atk: 30, hp: 0, crit: 0 },
+  { id: 'crown1', slot: 'armor', tier: 5, name: 'Crown of First Light', emoji: '👑', cost: 900, desc: '+260 HP', atk: 0, hp: 260, crit: 0 },
+  { id: 'fatedie', slot: 'charm', tier: 5, name: "Fate's Own Die", emoji: '🎲', cost: 850, desc: '+32% crit', atk: 0, hp: 0, crit: 0.32 },
+  { id: 'mantle', slot: 'outfit', tier: 5, name: 'Mantle of the Ainur', emoji: '🌌', cost: 850, desc: '+14 ATK, +180 HP', atk: 14, hp: 180, crit: 0 },
+  { id: 'ceternity', slot: 'cosmetic', tier: 5, name: 'Crown of Eternity', emoji: '💎', cost: 750, desc: 'Cosmetic — pure shine, no combat stats.', atk: 0, hp: 0, crit: 0 }
 ];
 const TRAIN_LINES = [
   'Eru does star-pushups! One… two… the cosmos counts along. 💪',
@@ -1827,7 +2166,7 @@ const TRAIN_LINES = [
   'Eru juggles three meteors. Dropped one. It\'s fine. Probably. 🔥'
 ];
 function defaultA3() {
-  return { power: { level: 1, xp: 0 }, shards: 0, owned: {}, equipped: { weapon: null, armor: null, charm: null } };
+  return { power: { level: 1, xp: 0 }, shards: 0, owned: {}, equipped: { weapon: null, armor: null, charm: null, outfit: null, cosmetic: null } };
 }
 function loadA3() {
   try {
@@ -1931,6 +2270,7 @@ function digRock(i) {
   if (S.stats.energy < 2) { say('Eru is too tired to dig. Feed or rest first!', 3000); sfx(function(){SFX.bad();}); return false; }
   S.stats.energy = clamp(S.stats.energy - 2, 0, 100);
   rock.cracked = true;
+  sparkleBurst(rock.loot > 0 ? 6 : 2);
   if (rock.loot > 0) {
     addShards(rock.loot);
     say('💠 Struck ' + rock.loot + ' star shards!', 2500);
@@ -2002,6 +2342,7 @@ function pickHerb(i) {
   s.glow = 0;
   herbGame.found++;
   addShards(2);
+  sparkleBurst(3);
   sfx(function(){SFX.tap();});
   renderHerbs();
   return true;
@@ -2014,26 +2355,173 @@ function endHerbGame() {
   say('Foraging done! ' + found + ' herbs → +' + (found * 2) + '💠', 3500);
   renderHerbs();
 }
+/* ---- cosmic racing mini-game ---- */
+let raceOn = false, raceScore = 0, raceDist = 0, raceSpeed = 0, raceEnd = 0, raceLast = 0, raceRaf = 0;
+let raceX = 0, raceKeys = {}, raceObs = [], raceStars = [], raceRoad = 0, raceShake = 0, raceStarCount = 0;
+function raceDrawRoad(ctx, W, H, road, px, steer) {
+  ctx.fillStyle = '#0a2413'; ctx.fillRect(0, 0, W, H);
+  var roadW = Math.min(W * 0.72, 260), rx0 = (W - roadW) / 2;
+  ctx.fillStyle = '#1c1c22'; ctx.fillRect(rx0, 0, roadW, H);
+  ctx.strokeStyle = '#eafff0'; ctx.lineWidth = 4; ctx.setLineDash([26, 30]); ctx.lineDashOffset = -(road % 56);
+  ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke(); ctx.setLineDash([]);
+  ctx.font = '22px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (var i = 0; i < 5; i++) {
+    var ty = ((i * 90 + road) % (H + 60)) - 30;
+    ctx.fillText('🌲', rx0 - 22, ty); ctx.fillText('🌲', rx0 + roadW + 22, ty);
+  }
+  ctx.font = '38px serif';
+  ctx.save(); ctx.translate(px, H - 70); ctx.rotate(Math.PI / 2 + (steer || 0) * 0.18); ctx.fillText('🏎️', 0, 0); ctx.restore();
+}
+function raceDrawIdle() {
+  try {
+    var cv = el('raceCanvas'); if (!cv) return;
+    cv.width = cv.clientWidth || 300; cv.height = 300;
+    var ctx = cv.getContext('2d'); if (!ctx) return;
+    raceDrawRoad(ctx, cv.width, 300, 0, cv.width / 2, 0);
+  } catch (e) {}
+}
+function startRace() {
+  if (raceOn) return;
+  if (S.stats.energy < 5) { say('Eru is too tired to race. Feed or rest first!', 3000); sfx(function(){SFX.bad();}); return; }
+  S.stats.energy = clamp(S.stats.energy - 5, 0, 100); save(); renderStats();
+  var cv = el('raceCanvas'); if (!cv) return;
+  try { cv.width = cv.clientWidth || 300; cv.height = 300; } catch (e) {}
+  raceOn = true; raceScore = 0; raceDist = 0; raceSpeed = 0; raceEnd = Date.now() + 45000; raceLast = Date.now();
+  raceObs = []; raceStars = []; raceRoad = 0; raceShake = 0; raceStarCount = 0;
+  raceX = (cv.width || 300) / 2;
+  say('🏎️ GO! Dodge traffic, grab stars!', 2500); sfx(function(){SFX.play();});
+  var loop = function () { raceLoop(); };
+  if (window.requestAnimationFrame) raceRaf = window.requestAnimationFrame(loop); else setTimeout(loop, 16);
+}
+function raceLoop() {
+  if (!raceOn) return;
+  var cv = el('raceCanvas'); if (!cv) { endRace(); return; }
+  var ctx = null; try { ctx = cv.getContext('2d'); } catch (e) {}
+  if (!ctx) { endRace(); return; }
+  var now = Date.now();
+  var dt = Math.min(0.05, (now - raceLast) / 1000); raceLast = now;
+  var tLeft = Math.max(0, (raceEnd - now) / 1000);
+  var W = cv.width || 300, H = cv.height || 300;
+  var gas = raceKeys.gas || raceKeys.up, brake = raceKeys.brake || raceKeys.down;
+  if (gas) raceSpeed += 420 * dt; else if (brake) raceSpeed -= 700 * dt; else raceSpeed -= 60 * dt;
+  raceSpeed = clamp(raceSpeed, 0, 520);
+  var steer = (raceKeys.right ? 1 : 0) - (raceKeys.left ? 1 : 0);
+  raceX += steer * (140 + raceSpeed * 0.45) * dt;
+  var margin = 34; raceX = Math.max(margin, Math.min(W - margin, raceX));
+  raceRoad += raceSpeed * dt; raceDist += raceSpeed * dt;
+  if (Math.random() < 0.02 + raceSpeed / 26000 && raceObs.length < 5) {
+    raceObs.push({ x: margin + Math.random() * (W - margin * 2), y: -40, v: 60 + Math.random() * 80, kind: Math.random() < 0.5 ? '🚗' : '🚙' });
+  }
+  if (Math.random() < 0.012 && raceStars.length < 3) {
+    raceStars.push({ x: margin + Math.random() * (W - margin * 2), y: -30 });
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  if (raceShake > 0) { ctx.translate((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 8); raceShake -= dt; }
+  ctx.clearRect(-20, -20, W + 40, H + 40);
+  raceDrawRoad(ctx, W, H, raceRoad, raceX, steer);
+  ctx.font = '30px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (var i = raceObs.length - 1; i >= 0; i--) {
+    var o = raceObs[i];
+    o.y += (raceSpeed - o.v) * dt;
+    if (o.y > H + 50) { raceObs.splice(i, 1); continue; }
+    if (o.y < -60) continue;
+    ctx.save(); ctx.translate(o.x, o.y); ctx.rotate(-Math.PI / 2); ctx.fillText(o.kind, 0, 0); ctx.restore();
+    var dx = o.x - raceX, dy = o.y - (H - 70);
+    if (dx * dx + dy * dy < 30 * 30) {
+      raceObs.splice(i, 1); raceSpeed *= 0.4; raceShake = 0.35;
+      sfx(function(){SFX.bad();}); sparkleBurst(2);
+    }
+  }
+  ctx.font = '24px serif';
+  for (var j = raceStars.length - 1; j >= 0; j--) {
+    var st = raceStars[j];
+    st.y += raceSpeed * dt;
+    if (st.y > H + 40) { raceStars.splice(j, 1); continue; }
+    ctx.fillText('⭐', st.x, st.y);
+    var sdx = st.x - raceX, sdy = st.y - (H - 70);
+    if (sdx * sdx + sdy * sdy < 34 * 34) {
+      raceStars.splice(j, 1); raceStarCount++;
+      sfx(function(){SFX.catch();}); sparkleBurst(2);
+    }
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  raceScore = Math.floor(raceDist / 50) + raceStarCount * 25;
+  var rs = el('raceScore'), rv = el('raceSpeed'), rt = el('raceTime');
+  if (rs) rs.textContent = '⭐ ' + raceScore;
+  if (rv) rv.textContent = Math.round(raceSpeed * 0.35) + ' mph';
+  if (rt) rt.textContent = '⏱ ' + Math.ceil(tLeft);
+  if (tLeft <= 0) { endRace(); return; }
+  var loop = function () { raceLoop(); };
+  if (window.requestAnimationFrame) raceRaf = window.requestAnimationFrame(loop); else setTimeout(loop, 16);
+}
+function endRace() {
+  raceOn = false;
+  try { if (window.cancelAnimationFrame) window.cancelAnimationFrame(raceRaf); } catch (e) {}
+  var score = Math.floor(raceDist / 50) + raceStarCount * 25;
+  var shards = Math.floor(score / 150);
+  if (shards > 0) addShards(shards);
+  say('🏁 Race over! Score ' + score + (shards > 0 ? ' → +' + shards + '💠' : '') + '!', 4000);
+  save(); renderStats(); renderShards();
+  raceDrawIdle();
+}
+function raceHold(id, key) {
+  var b = el(id); if (!b) return;
+  var on = function (e) { try { if (e.preventDefault) e.preventDefault(); } catch (x) {} raceKeys[key] = true; b.classList.add('held'); };
+  var off = function () { raceKeys[key] = false; b.classList.remove('held'); };
+  b.addEventListener('pointerdown', on);
+  b.addEventListener('pointerup', off); b.addEventListener('pointerleave', off); b.addEventListener('pointercancel', off);
+}
+function bindRace() {
+  onTap('btnRace', startRace);
+  raceHold('rcLeft', 'left'); raceHold('rcRight', 'right'); raceHold('rcUp', 'up'); raceHold('rcDown', 'down');
+  raceHold('rcGas', 'gas'); raceHold('rcBrake', 'brake');
+  window.addEventListener('keydown', function (e) {
+    if (!raceOn) return;
+    var k = e.key;
+    if (k === 'ArrowLeft') raceKeys.left = true;
+    else if (k === 'ArrowRight') raceKeys.right = true;
+    else if (k === 'ArrowUp') { raceKeys.up = true; raceKeys.gas = true; }
+    else if (k === 'ArrowDown') { raceKeys.down = true; raceKeys.brake = true; }
+    else return;
+    try { e.preventDefault(); } catch (x) {}
+  });
+  window.addEventListener('keyup', function (e) {
+    var k = e.key;
+    if (k === 'ArrowLeft') raceKeys.left = false;
+    else if (k === 'ArrowRight') raceKeys.right = false;
+    else if (k === 'ArrowUp') { raceKeys.up = false; raceKeys.gas = false; }
+    else if (k === 'ArrowDown') { raceKeys.down = false; raceKeys.brake = false; }
+  });
+  raceDrawIdle();
+}
 /* ---- equipment shop ---- */
 function renderGearShop() {
   const box = el('gearShop'); if (!box) return;
   box.innerHTML = '';
-  for (const g of GEAR) {
-    const row = document.createElement('div'); row.className = 'foerow';
-    const em = document.createElement('div'); em.style.fontSize = '30px'; em.textContent = g.emoji;
-    const meta = document.createElement('div'); meta.style.cssText = 'flex:1;min-width:0';
-    const nm = document.createElement('div'); nm.className = 'fname'; nm.textContent = g.name;
-    const sb = document.createElement('div'); sb.className = 'fsub'; sb.textContent = g.desc + ' · ' + g.cost + '💠';
-    meta.appendChild(nm); meta.appendChild(sb);
-    row.appendChild(em); row.appendChild(meta);
-    const owned = !!A3.owned[g.id], equipped = A3.equipped[g.slot] === g.id;
-    const btn = document.createElement('button');
-    btn.className = 'rx';
-    btn.style.cssText = 'flex:0 0 auto;padding:0 14px;height:44px;border-color:#1fdc5a;color:#7dff9e;font-size:12px;font-weight:bold;';
-    btn.textContent = equipped ? 'UNEQUIP' : (owned ? 'EQUIP' : 'BUY ' + g.cost + '💠');
-    (function (id) { btn.addEventListener('click', function () { gearAction(id); }); })(g.id);
-    row.appendChild(btn);
-    box.appendChild(row);
+  var shopBal = el('shardBalShop'); if (shopBal) shopBal.textContent = '💠 ' + (A3.shards || 0);
+  const TIERS = { 1: 'TIER 1 · STARLIGHT', 2: 'TIER 2 · MOONLIT', 3: 'TIER 3 · VOIDFORGED', 4: 'TIER 4 · SOLAR', 5: 'TIER 5 · AINUR' };
+  for (let t = 1; t <= 5; t++) {
+    const items = GEAR.filter(function (g) { return (g.tier || 1) === t; });
+    if (!items.length) continue;
+    const head = document.createElement('div'); head.className = 'tierHead'; head.textContent = TIERS[t];
+    box.appendChild(head);
+    for (const g of items) {
+      const row = document.createElement('div'); row.className = 'foerow';
+      const em = document.createElement('div'); em.style.fontSize = '30px'; em.textContent = g.emoji;
+      const meta = document.createElement('div'); meta.style.cssText = 'flex:1;min-width:0';
+      const nm = document.createElement('div'); nm.className = 'fname'; nm.textContent = g.name;
+      const sb = document.createElement('div'); sb.className = 'fsub'; sb.textContent = g.desc + ' · ' + g.cost + '💠';
+      meta.appendChild(nm); meta.appendChild(sb);
+      row.appendChild(em); row.appendChild(meta);
+      const owned = !!A3.owned[g.id], equipped = A3.equipped[g.slot] === g.id;
+      const btn = document.createElement('button');
+      btn.className = 'rx';
+      btn.style.cssText = 'flex:0 0 auto;padding:0 14px;height:44px;border-color:#1fdc5a;color:#7dff9e;font-size:12px;font-weight:bold;';
+      btn.textContent = equipped ? 'UNEQUIP' : (owned ? 'EQUIP' : 'BUY ' + g.cost + '💠');
+      (function (id) { btn.addEventListener('click', function () { gearAction(id); }); })(g.id);
+      row.appendChild(btn);
+      box.appendChild(row);
+    }
   }
   renderGearBadges();
 }
@@ -2401,7 +2889,7 @@ const LOCAL_EXTRA = [{
 }];
 const LOCAL_LIST = (function () {
   var out = [], seen = {};
-  var push = function (raw) { var n = rNorm(raw); if (!seen[n.uuid]) { seen[n.uuid] = 1; out.push(n); } };
+  var push = function (raw) { var n = rNorm(raw); if (!n.url) return; if (!seen[n.uuid]) { seen[n.uuid] = 1; out.push(n); } };
   for (var i = 0; i < KNOX_FALLBACK.length; i++) {
     var f = Object.assign({}, KNOX_FALLBACK[i]);
     if (!f.cities) f.cities = ['Knoxville'];
@@ -2683,7 +3171,7 @@ function rGenreChips(s) {
 }
 function rRender() {
   const listEl = el('rList'); if (!listEl) return;
-  const arr = rVisibleList();
+  const arr = rVisibleList().filter(function (s) { return !!s.url; });
   listEl.innerHTML = '';
   const more = (!rFallback && rView !== 'fav' && rView !== 'recent' && rHasMore) ? ' · scroll for more' : '';
   const rc = el('rCount');
@@ -2870,6 +3358,7 @@ function rPlay(uuid) {
   if (!s) return false;
   if (!s.url) { if (s.homepage) { try { window.open(s.homepage, '_blank', 'noopener'); } catch (e) {} } return true; }
   const a = rAudio(); if (!a) return false;
+  try { a.volume = (typeof appVol === 'number') ? appVol : 1; } catch (e) {}
   rCurrentUuid = uuid; rErrFlag = null;
   try { a.src = s.url; } catch (e) {}
   const nn = el('npName'), ns = el('npSub'), ne = el('npErr'), np = el('nowPlaying'), pb = el('npPlay');
@@ -3128,6 +3617,325 @@ function registerSW() {
   } catch (e) {}
 }
 
+/* ================= v3.3: MUSIC + 8 BALL + SETTINGS ================= */
+const APP_VERSION = '3.3.1';
+const BUILD_DATE = '2026-11-02';
+const SITE_BASE = 'https://zombombadil.github.io/zombombadil-site/';
+const MUSIC_TRACKS = [
+  { album: 'Ainulindalë: Music of the Ainur', tracks: [
+    { t: 'The Two Trees', f: 'audio/track01-two-trees.mp3' },
+    { t: 'Varda Elentári', f: 'audio/track02-varda.mp3' },
+    { t: 'Ulmo', f: 'audio/track03-ulmo.mp3' },
+    { t: 'Yavanna', f: 'audio/track04-yavanna.mp3' },
+    { t: 'The Discord of Melkor', f: 'audio/track05-discord-of-melkor.mp3' },
+    { t: "Lúthien's Song", f: 'audio/track06-luthien-song.mp3' },
+    { t: 'The Voyage of Eärendil', f: 'audio/track07-voyage-of-earendil.mp3' } ] },
+  { album: 'Steelstorm', tracks: [
+    { t: 'Steelstorm Rift', f: 'audio/steelstorm/steelstorm-rift-01.mp3' },
+    { t: 'Glam Galaxy Riot', f: 'audio/steelstorm/steelstorm-glam-galaxy-riot-02.mp3' },
+    { t: 'NecroShock Circuit', f: 'audio/steelstorm/steelstorm-necroshock-circuit-03.mp3' },
+    { t: 'Carnival of Chaos', f: 'audio/steelstorm/steelstorm-carnival-of-chaos-04.mp3' } ] },
+  { album: 'Warlords and Conquerors', tracks: [
+    { t: "Ungern's Battalion Blitzkrieg", f: 'audio/warlords/warlords-ungerns-battalion-blitzkrieg-01.mp3' },
+    { t: 'Galloping Empire', f: 'audio/warlords/warlords-galloping-empire-02.mp3' },
+    { t: 'Swordfire Dominion', f: 'audio/warlords/warlords-swordfire-dominion-03.mp3' },
+    { t: 'Tsar of Tormod', f: 'audio/warlords/warlords-tsar-of-tormod-04.mp3' } ] },
+  { album: 'North Star Compass', tracks: [
+    { t: 'Rodeo Mirage', f: 'audio/northstar/rodeo-mirage-01.mp3' },
+    { t: 'Starforge Odyssey', f: 'audio/northstar/starforge-odyssey-02.mp3' } ] },
+  { album: 'Wobbles and Weebs', tracks: [
+    { t: 'Wobble Knights', f: 'audio/wobbles/wobbles-wobble-knights-01.mp3' },
+    { t: 'Steel Horizon Charge', f: 'audio/wobbles/wobbles-steel-horizon-charge-02.mp3' },
+    { t: 'Wobble Funk Resonance', f: 'audio/wobbles/wobbles-wobble-funk-resonance-03.mp3' } ] }
+];
+let musicCurrent = -1;
+function musicFlat() {
+  var out = [];
+  for (var a = 0; a < MUSIC_TRACKS.length; a++) for (var i = 0; i < MUSIC_TRACKS[a].tracks.length; i++)
+    out.push({ album: MUSIC_TRACKS[a].album, title: MUSIC_TRACKS[a].tracks[i].t, url: SITE_BASE + MUSIC_TRACKS[a].tracks[i].f });
+  return out;
+}
+function renderMusic() {
+  var box = el('musicList'); if (!box) return;
+  box.innerHTML = '';
+  var idx = 0;
+  for (var a = 0; a < MUSIC_TRACKS.length; a++) {
+    var h = document.createElement('div'); h.className = 'albumTitle'; h.textContent = '🎵 ' + MUSIC_TRACKS[a].album; box.appendChild(h);
+    for (var i = 0; i < MUSIC_TRACKS[a].tracks.length; i++) {
+      (function (j, title) {
+        var row = document.createElement('div'); row.className = 'mtrack' + (musicCurrent === j ? ' playing' : '');
+        var pb = document.createElement('button'); pb.className = 'mplay'; pb.textContent = musicCurrent === j ? '⏸' : '▶'; pb.setAttribute('aria-label', 'play ' + title);
+        var nm = document.createElement('div'); nm.className = 'mtitle'; nm.textContent = title;
+        pb.addEventListener('click', function () { playMusic(j); });
+        row.appendChild(pb); row.appendChild(nm); box.appendChild(row);
+      })(idx, MUSIC_TRACKS[a].tracks[i].t);
+      idx++;
+    }
+  }
+  var stop = el('btnMusicStop'); if (stop) stop.style.display = (musicCurrent >= 0) ? '' : 'none';
+}
+function playMusic(j) {
+  var flat = musicFlat(); var tr = flat[j]; if (!tr) return;
+  var ma = el('musicAudio'); if (!ma) return;
+  try { var ra = el('radioAudio'); if (ra) ra.pause(); } catch (e) {}
+  if (musicCurrent === j && !ma.paused) { ma.pause(); musicCurrent = -1; renderMusic(); return; }
+  musicCurrent = j;
+  try { ma.volume = (typeof appVol === 'number') ? appVol : 1; } catch (e) {}
+  try { ma.src = tr.url; var pr = ma.play(); if (pr && pr.catch) pr.catch(function () {}); } catch (e) {}
+  renderMusic();
+  try { sfx(function(){SFX.tap();}); } catch (e) {}
+}
+function stopMusic() {
+  try { var ma = el('musicAudio'); if (ma) ma.pause(); } catch (e) {}
+  musicCurrent = -1; renderMusic();
+}
+const BALL_ANSWERS = [
+  '🔮 The stars say YES. Go now.',
+  '🌟 Without a doubt — the stars are aligned.',
+  '✨ It is certain. The crystal does not lie.',
+  '💚 Yes — and the green stars approve.',
+  '⚡ Signs point to yes. Lightning confirms it.',
+  '🎵 The music says yes. Listen and you will know.',
+  '🌌 As the stars shine, so shall it be.',
+  '🔮 Reply hazy — ask again after listening to Melkor.',
+  '🌫️ The mists are thick. Try again later.',
+  '🤔 Cannot predict now — the crystal is buffering.',
+  '🌙 Ask again when the moon is up.',
+  '💭 The answer hides in the music. Go listen first.',
+  '🚫 Do not count on it — the stars are shaking their heads.',
+  '🌑 My reply is no. The void agrees.',
+  '😤 Outlook not so good. But hey — prove the ball wrong.',
+  '⚠️ Very doubtful. The lightning says otherwise.',
+  '🎮 Ask again after playing a game. Priorities.',
+  '🧭 Follow the North Star. The answer is that way.',
+  '💚 Green light! Go for it!',
+  '🔥 The Steelstorm says YES. Feel the rift.',
+  '🎭 The ball is amused. Ask a better question.',
+  '🌟 The stars whisper: yes, but not yet. Patience.',
+  '⚡ The lightning strikes YES. Boldly.',
+  '🌌 Eru Ilúvatar speaks: it is so.',
+  '🔮 The crystal clouds over... try a different question.',
+  '💫 Signs point to yes — with a side of chaos.',
+  '🎮 The ball says: play first, decide later.'
+];
+function ballSmartAnswer(q) {
+  q = (q || '').toLowerCase();
+  if (q.indexOf('music') !== -1 || q.indexOf('listen') !== -1 || q.indexOf('song') !== -1)
+    return '🎵 The crystal hums a tune: YES. Go listen to the music RIGHT NOW.';
+  if (q.indexOf('game') !== -1 || q.indexOf('play') !== -1)
+    return '🎮 The ball glows green: YES. Play the games. Hatchem! is solid.';
+  if (q.indexOf('love') !== -1 || q.indexOf('crush') !== -1 || q.indexOf('like me') !== -1)
+    return '💚 The stars smile on you. Go tell them how you feel.';
+  if (q.indexOf('money') !== -1 || q.indexOf('rich') !== -1 || q.indexOf('job') !== -1)
+    return '💰 The crystal sees coins... eventually. Keep building.';
+  if (q.indexOf('should i') !== -1 || q.indexOf('do i') !== -1)
+    return '🌟 The ball says: trust your gut. It knows more than the crystal.';
+  if (q.indexOf('tomorrow') !== -1 || q.indexOf('future') !== -1)
+    return '🔮 The future is unwritten. But the stars lean YES.';
+  if (q.indexOf('scared') !== -1 || q.indexOf('afraid') !== -1 || q.indexOf('worried') !== -1)
+    return '🌌 Fear is just the dark before dawn. The stars are with you.';
+  if (q.indexOf('eru') !== -1)
+    return '🌌 I am Eru, maker of stars and songs. And yes — I approve.';
+  if (q.indexOf('steelstorm') !== -1 || q.indexOf('rift') !== -1)
+    return '⚡ The Steelstorm rift crackles: YES. Feel the storm.';
+  if (q.indexOf('north star') !== -1 || q.indexOf('compass') !== -1)
+    return '🧭 Follow the North Star. It never steers wrong.';
+  if (!q.trim()) return '🔮 The ball needs a question first! Type one above.';
+  return BALL_ANSWERS[Math.floor(Math.random() * BALL_ANSWERS.length)];
+}
+function askBall() {
+  var input = el('ballQuestion'); var q = input ? input.value : '';
+  var ball = el('ballEl'), ans = el('ballAnswer');
+  if (ans) ans.textContent = '…';
+  if (ball) { ball.classList.remove('shaking'); void ball.offsetWidth; ball.classList.add('shaking'); }
+  setTimeout(function () {
+    var a = ballSmartAnswer(q);
+    if (ans) ans.textContent = a;
+    try { sfx(function(){SFX.fav();}); } catch (e) {}
+  }, 950);
+}
+function bindMusic() {
+  onTap('btnSiteLink', function () { try { window.open(SITE_BASE, '_blank', 'noopener'); } catch (e) {} });
+  onTap('btnMusicStop', stopMusic);
+  onTap('btnBallAsk', askBall);
+  var ball = el('ballEl'); if (ball) ball.addEventListener('click', askBall);
+  var ma = el('musicAudio');
+  if (ma) ma.addEventListener('ended', function () {
+    var flat = musicFlat();
+    if (musicCurrent >= 0 && musicCurrent + 1 < flat.length) playMusic(musicCurrent + 1);
+    else stopMusic();
+  });
+}
+/* ---------------- settings: volume, brightness, links, release info ---------------- */
+const SETTINGS_KEY = 'eru-settings-v1';
+var appVol = 1, appBright = 100;
+function loadSettings() {
+  try {
+    var raw = localStorage.getItem(SETTINGS_KEY); if (!raw) return;
+    var s = JSON.parse(raw);
+    if (typeof s.vol === 'number') appVol = Math.min(1, Math.max(0, s.vol));
+    if (typeof s.bright === 'number') appBright = Math.min(100, Math.max(20, s.bright));
+  } catch (e) {}
+}
+function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ vol: appVol, bright: appBright })); } catch (e) {} }
+function applySettings() {
+  try {
+    var dim = el('brightDim'); if (dim) dim.style.opacity = String(((100 - appBright) / 100) * 0.9);
+    var ra = el('radioAudio'); if (ra) ra.volume = appVol;
+    var ma = el('musicAudio'); if (ma) ma.volume = appVol;
+    var vs = el('volSlider'); if (vs) vs.value = Math.round(appVol * 100);
+    var vv = el('volVal'); if (vv) vv.textContent = Math.round(appVol * 100) + '%';
+    var bs = el('brightSlider'); if (bs) bs.value = appBright;
+    var bv = el('brightVal'); if (bv) bv.textContent = appBright + '%';
+    var ri = el('releaseInfo'); if (ri) ri.textContent = 'Version ' + APP_VERSION + ' · Built ' + BUILD_DATE + ' · com.zombombadil.erucompanion';
+  } catch (e) {}
+}
+function openSettings() { var sh = el('settingsSheet'); if (sh) sh.classList.add('open'); applySettings(); try { sfx(function(){SFX.tap();}); } catch (e) {} }
+function closeSettings() { var sh = el('settingsSheet'); if (sh) sh.classList.remove('open'); }
+function bindSettings() {
+  loadSettings(); applySettings();
+  onTap('settingsBtn', openSettings);
+  onTap('settingsClose', closeSettings);
+  onTap('settingsDone', closeSettings);
+  onTap('settingsBackdrop', closeSettings);
+  var vs = el('volSlider'); if (vs) vs.addEventListener('input', function () { appVol = vs.value / 100; applySettings(); saveSettings(); });
+  var bs = el('brightSlider'); if (bs) bs.addEventListener('input', function () { appBright = parseInt(bs.value, 10); applySettings(); saveSettings(); });
+  var links = document.querySelectorAll('.setLink');
+  for (var i = 0; i < links.length; i++) (function (b) { b.addEventListener('click', function () { try { window.open(b.dataset.site, '_blank', 'noopener'); } catch (e) {} }); })(links[i]);
+}
+
+/* ================= v3.3: STAR VAULT (original room-building homage) ================= */
+const VAULT_KEY = 'eru-vault-v1';
+const VAULT_ROOMS = [
+  { id: 'reactor', name: 'Star Reactor', emoji: '⚡', build: 40, cycle: 60, yield: { shards: 6 }, up: [80, 160], desc: 'Generates star shards over time.' },
+  { id: 'garden', name: 'Moon Garden', emoji: '🌿', build: 30, cycle: 90, yield: { hunger: 12 }, up: [60, 120], desc: 'Grows moon fruit. Restores hunger on collect.' },
+  { id: 'quarters', name: 'Dream Quarters', emoji: '🌙', build: 25, cycle: 90, yield: { energy: 12 }, up: [50, 100], desc: 'Restful bunks. Restores energy on collect.' },
+  { id: 'forge', name: 'Ember Forge', emoji: '🔥', build: 60, cycle: 120, yield: { happy: 12 }, up: [120, 240], desc: 'A cheerful hearth. Restores happiness on collect.' }
+];
+function vaultLoad() {
+  try {
+    var raw = localStorage.getItem(VAULT_KEY);
+    if (raw) { var v = JSON.parse(raw); if (v && v.rooms) return v; }
+  } catch (e) {}
+  return { rooms: {} };
+}
+var V = vaultLoad();
+function vaultSave() { try { localStorage.setItem(VAULT_KEY, JSON.stringify(V)); } catch (e) {} }
+function vaultDef(id) { for (var i = 0; i < VAULT_ROOMS.length; i++) if (VAULT_ROOMS[i].id === id) return VAULT_ROOMS[i]; return null; }
+function vaultYieldText(def, level) {
+  var y = def.yield, parts = [];
+  if (y.shards) parts.push('+' + (y.shards * level) + '💠');
+  if (y.hunger) parts.push('+' + (y.hunger * level) + ' hunger');
+  if (y.energy) parts.push('+' + (y.energy * level) + ' energy');
+  if (y.happy) parts.push('+' + (y.happy * level) + ' happy');
+  return parts.join(' · ');
+}
+function vaultApplyYield(def, level) {
+  var y = def.yield;
+  if (y.shards) addShards(y.shards * level);
+  var t = S.stats;
+  if (y.hunger) t.hunger = clamp(t.hunger + y.hunger * level, 0, 100);
+  if (y.energy) t.energy = clamp(t.energy + y.energy * level, 0, 100);
+  if (y.happy) t.happy = clamp(t.happy + y.happy * level, 0, 100);
+  save(); renderStats(); renderShards();
+}
+function vaultFmt(ms) {
+  if (ms <= 0) return '0:00';
+  var s = Math.ceil(ms / 1000);
+  return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60);
+}
+function vaultBuild(id) {
+  var def = vaultDef(id); if (!def) return;
+  var st = V.rooms[id] || {};
+  if (st.built) return;
+  if ((A3.shards || 0) < def.build) { say('Not enough shards — ' + def.name + ' costs ' + def.build + '💠.', 3000); sfx(function(){SFX.bad();}); return; }
+  A3.shards -= def.build; saveA3();
+  V.rooms[id] = { built: true, level: 1, readyAt: Date.now() + def.cycle * 1000, infested: false };
+  vaultSave(); renderShards(); renderVault();
+  say(def.emoji + ' ' + def.name + ' built! First yield in ' + vaultFmt(def.cycle * 1000) + '.', 3500);
+  sfx(function(){SFX.feed();});
+}
+function vaultCollect(id) {
+  var def = vaultDef(id); var st = V.rooms[id]; if (!def || !st || !st.built || st.infested) return;
+  if (Date.now() < st.readyAt) return;
+  vaultApplyYield(def, st.level);
+  st.readyAt = Date.now() + def.cycle * 1000; vaultSave(); renderVault();
+  say(def.emoji + ' ' + def.name + ' collected: ' + vaultYieldText(def, st.level) + '!', 3000);
+  sfx(function(){SFX.fav();});
+}
+function vaultRush(id) {
+  var def = vaultDef(id); var st = V.rooms[id]; if (!def || !st || !st.built || st.infested) return;
+  if (Date.now() >= st.readyAt) { vaultCollect(id); return; }
+  if (Math.random() < 0.7) {
+    vaultApplyYield(def, st.level);
+    st.readyAt = Date.now() + def.cycle * 1000; vaultSave(); renderVault();
+    say('⚡ Rush worked! ' + def.name + ': ' + vaultYieldText(def, st.level) + '!', 3000);
+    sfx(function(){SFX.fav();});
+  } else {
+    st.infested = true; vaultSave(); renderVault();
+    say('🐛 Rush failed! Void Mites infested the ' + def.name + '. Clear them to restart it.', 4000);
+    sfx(function(){SFX.bad();});
+  }
+}
+function vaultUpgrade(id) {
+  var def = vaultDef(id); var st = V.rooms[id]; if (!def || !st || !st.built || st.infested) return;
+  if (st.level >= 3) return;
+  var cost = def.up[st.level - 1];
+  if ((A3.shards || 0) < cost) { say('Not enough shards — upgrade costs ' + cost + '💠.', 3000); sfx(function(){SFX.bad();}); return; }
+  A3.shards -= cost; saveA3();
+  st.level++; st.readyAt = Date.now() + def.cycle * 1000; vaultSave(); renderShards(); renderVault();
+  say(def.emoji + ' ' + def.name + ' upgraded to LV ' + st.level + '! Yield is now ' + vaultYieldText(def, st.level) + ' per cycle.', 3500);
+  sfx(function(){SFX.feed();});
+}
+function vaultClear(id) {
+  var st = V.rooms[id]; if (!st || !st.infested) return;
+  var def = vaultDef(id);
+  st.infested = false; st.readyAt = Date.now() + def.cycle * 1000; vaultSave(); renderVault();
+  say('🐛 Mites cleared! The ' + def.name + ' is working again.', 3000);
+  sfx(function(){SFX.clean();});
+}
+function renderVault() {
+  var box = el('vaultRooms'); if (!box) return;
+  var bal = el('shardBalVault'); if (bal) bal.textContent = '💠 ' + (A3.shards || 0);
+  box.innerHTML = '';
+  var now = Date.now();
+  for (var i = 0; i < VAULT_ROOMS.length; i++) {
+    (function (def) {
+      var st = V.rooms[def.id] || { built: false, level: 1, readyAt: 0, infested: false };
+      var card = document.createElement('div'); card.className = 'vroom' + (st.infested ? ' infested' : '');
+      var title = document.createElement('div'); title.className = 'vtitle';
+      title.textContent = def.emoji + ' ' + def.name + (st.built ? ' · LV ' + st.level : '');
+      var desc = document.createElement('div'); desc.className = 'vdesc';
+      desc.textContent = def.desc + ' Yield per cycle: ' + vaultYieldText(def, st.level || 1) + '.';
+      var status = document.createElement('div'); status.className = 'vstatus';
+      var row = document.createElement('div'); row.className = 'vrow';
+      var addBtn = function (label, enabled, fn) {
+        var b = document.createElement('button'); b.className = 'vbtn'; b.textContent = label;
+        if (!enabled) b.disabled = true; else b.addEventListener('click', fn);
+        row.appendChild(b);
+      };
+      if (!st.built) {
+        status.textContent = 'Not built — costs ' + def.build + '💠.';
+        addBtn('🔨 BUILD (' + def.build + '💠)', (A3.shards || 0) >= def.build, function () { vaultBuild(def.id); });
+      } else if (st.infested) {
+        status.textContent = '🐛 VOID MITES! Production stopped.';
+        addBtn('🧹 CLEAR MITES', true, function () { vaultClear(def.id); });
+      } else if (now >= st.readyAt) {
+        status.textContent = '✅ READY — ' + vaultYieldText(def, st.level) + ' waiting!';
+        status.classList.add('ready');
+        addBtn('📥 COLLECT', true, function () { vaultCollect(def.id); });
+        if (st.level < 3) addBtn('⬆️ UPGRADE (' + def.up[st.level - 1] + '💠)', (A3.shards || 0) >= def.up[st.level - 1], function () { vaultUpgrade(def.id); });
+      } else {
+        status.textContent = '⏱ Ready in ' + vaultFmt(st.readyAt - now) + ' · yield ' + vaultYieldText(def, st.level) + '.';
+        addBtn('⚡ RUSH (70% success)', true, function () { vaultRush(def.id); });
+        if (st.level < 3) addBtn('⬆️ UPGRADE (' + def.up[st.level - 1] + '💠)', (A3.shards || 0) >= def.up[st.level - 1], function () { vaultUpgrade(def.id); });
+      }
+      card.appendChild(title); card.appendChild(desc); card.appendChild(status); card.appendChild(row);
+      box.appendChild(card);
+    })(VAULT_ROOMS[i]);
+  }
+}
+
 /* ---------------- init ---------------- */
 (function init() {
   try {
@@ -3140,7 +3948,8 @@ function registerSW() {
     bindPet();
     bindArena();
     bindCustom();
-    bindJobs();
+    bindSettings(); bindMusic(); renderMusic();
+    bindJobs(); bindRace();
     applyCustom();
     renderPower();
     renderShards();
@@ -3182,6 +3991,7 @@ try {
       checkStage();
       ambientChatter();
       renderStats(); renderScreen();
+      if (currentView === 'vault') renderVault();
     } catch (e) {}
   }, 1000);
   setInterval(function () { try { blinkTick(); } catch (e) {} }, 4200);
