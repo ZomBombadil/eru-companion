@@ -2947,7 +2947,7 @@ function rFetch(path) {
       const timer = setTimeout(function () { try { if (ctl) ctl.abort(); } catch (e) {} }, 8000);
       try {
         const opts = ctl ? { signal: ctl.signal } : {};
-        const r = await fetch('https://' + m + '/json/' + path, opts);
+        const r = await fetch(dcRbUrl(m, path), opts);
         clearTimeout(timer);
         if (!r.ok) throw new Error('http ' + r.status);
         const data = await r.json();
@@ -3108,7 +3108,7 @@ function rSomaNorm(ch) {
 function rLoadSoma() {
   rLoading = true;
   const ld = el('rLoading'); if (ld) ld.classList.remove('hidden');
-  return fetch('https://somafm.com/channels.json', { cache: 'no-store' })
+  return fetch(dcUrl('https://somafm.com/channels.json'), { cache: 'no-store' })
     .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
     .then(function (j) {
       const chs = (j && Array.isArray(j.channels)) ? j.channels : [];
@@ -3360,7 +3360,7 @@ function rPlay(uuid) {
   const a = rAudio(); if (!a) return false;
   try { a.volume = (typeof appVol === 'number') ? appVol : 1; } catch (e) {}
   rCurrentUuid = uuid; rErrFlag = null;
-  try { a.src = s.url; } catch (e) {}
+  try { a.src = dcUrl(s.url); } catch (e) {}
   const nn = el('npName'), ns = el('npSub'), ne = el('npErr'), np = el('nowPlaying'), pb = el('npPlay');
   if (nn) nn.textContent = s.name;
   if (ns) ns.textContent = [s.state, (s.tags || '').split(',')[0]].filter(Boolean).join(' · ') || 'live radio';
@@ -3427,7 +3427,7 @@ function bindRadioPlayer() {
       const ne = el('npErr'); if (ne) ne.classList.remove('show');
       // register the listen with the directory ONLY for streams that actually play
       if (rCurrentUuid && !rFallback && radioMirror) {
-        try { fetch('https://' + radioMirror + '/json/url/' + rCurrentUuid).catch(function () {}); } catch (e) {}
+        try { fetch(dcRbUrl(radioMirror, 'url/' + rCurrentUuid)).catch(function () {}); } catch (e) {}
       }
     });
     on(a, 'pause', function () { rJoyStop(); rSyncPlayIcons('▶'); });
@@ -3621,6 +3621,89 @@ function registerSW() {
 const APP_VERSION = '3.3.1';
 const BUILD_DATE = '2026-11-02';
 const SITE_BASE = 'https://zombombadil.github.io/zombombadil-site/';
+
+/* ---------------- Discord Activities (Embedded App SDK 2.5.0, MIT) ----------------
+   The game runs inside Discord as an Activity, in an iframe served from
+   <app-id>.discordsays.com. Everything in this block is INERT outside Discord:
+   DC_IN is false, dcUrl()/dcRbUrl() return their input unchanged, and the SDK is
+   never loaded — no Discord network calls at all on the plain web version or in
+   the APK. The Discord application "Eru Companion" already exists (created
+   2026-11-07); its Application ID (client ID) is hardcoded below as
+   DC_CLIENT_ID (client ID == app ID).
+   Full OAuth (authorize/authenticate) is intentionally NOT done here: exchanging
+   the authorize code for a token needs a backend server holding the client
+   secret, and this single-player game needs no user identity — the ready()
+   handshake alone is enough. */
+var DC_IN = false;
+var DC_CLIENT_ID = '1568626363190083584'; /* Discord application "Eru Companion", created 2026-11-07; client ID == app ID */
+var DC_READY = false;
+try {
+  DC_IN = /(^|\.)discordsays\.com$/.test(location.hostname);
+} catch (e) { DC_IN = false; }
+/* prefix -> target host, mirroring the URL Mappings in the Developer Portal.
+   In the portal, list longest prefixes first and the root '/' mapping last. */
+var DC_PROXY = [
+  ['rb1', 'de1.api.radio-browser.info'],
+  ['rb2', 'de2.api.radio-browser.info'],
+  ['rb3', 'nl1.api.radio-browser.info'],
+  ['soma', 'somafm.com'],
+  ['somaice', 'ice1.somafm.com'],
+  ['aiir', 'stream.aiir.com'],
+  ['stwt', 'playerservices.streamtheworld.com'],
+  ['securenet', 'ice8.securenetsystems.net'],
+  ['streamguys', 'wdvx.streamguys1.com'],
+  ['revma', 'n06.rcs.revma.com'],
+  ['emf', 'maestro.emfcdn.com'],
+  ['zbsite', 'zombombadil.github.io']
+];
+/* Rewrite an absolute external URL to its Discord proxy path, or return it
+   unchanged outside Discord (and for hosts with no mapping — Discord's CSP will
+   block those; the game's existing stream-error handling covers it). */
+function dcUrl(u) {
+  if (!DC_IN) return u;
+  try {
+    var p = new URL(u, location.href);
+    if (p.protocol !== 'http:' && p.protocol !== 'https:') return u;
+    var h = p.hostname.toLowerCase();
+    for (var i = 0; i < DC_PROXY.length; i++) {
+      if (h === DC_PROXY[i][1]) return '/.proxy/' + DC_PROXY[i][0] + p.pathname + p.search + p.hash;
+    }
+    var m = h.match(/^([a-z0-9-]+)\.live\.streamtheworld\.com$/);
+    if (m) return '/.proxy/live/' + m[1] + p.pathname + p.search + p.hash;
+    return u;
+  } catch (e) { return u; }
+}
+/* Radio Browser mirror -> proxy prefix (keeps the 3-mirror race working). */
+var DC_RB_PREFIX = { 'de1.api.radio-browser.info': 'rb1', 'de2.api.radio-browser.info': 'rb2', 'nl1.api.radio-browser.info': 'rb3' };
+function dcRbUrl(mirror, path) {
+  if (!DC_IN) return 'https://' + mirror + '/json/' + path;
+  var pre = DC_RB_PREFIX[mirror];
+  return pre ? '/.proxy/' + pre + '/json/' + path : ('https://' + mirror + '/json/' + path);
+}
+/* Handshake with the Discord client. Fire-and-forget: never blocks the game, and
+   any failure (no Discord frame, SDK load error, no READY within 5s) leaves the
+   game running exactly as on the web. Exposed for the smoke test via window. */
+async function dcInit(clientIdOverride) {
+  if (!DC_IN && !clientIdOverride) return false;
+  var cid = clientIdOverride || DC_CLIENT_ID;
+  if (!cid) return false;
+  try {
+    var mod = await import('./discord-sdk.mjs');
+    var sdk = new mod.DiscordSDK(cid);
+    var done = false;
+    try {
+      await Promise.race([
+        sdk.ready().then(function () { done = true; }),
+        new Promise(function (res) { setTimeout(res, 5000); })
+      ]);
+    } catch (e) { done = false; }
+    DC_READY = done;
+    try { console.log('[eru-discord] handshake ' + (done ? 'ready' : 'no READY (continuing without Discord)') + ' client ' + cid); } catch (e) {}
+    return done;
+  } catch (e) { return false; }
+}
+if (DC_IN) { try { dcInit(); } catch (e) {} }
+
 const MUSIC_TRACKS = [
   { album: 'Ainulindalë: Music of the Ainur', tracks: [
     { t: 'The Two Trees', f: 'audio/track01-two-trees.mp3' },
@@ -3681,7 +3764,7 @@ function playMusic(j) {
   if (musicCurrent === j && !ma.paused) { ma.pause(); musicCurrent = -1; renderMusic(); return; }
   musicCurrent = j;
   try { ma.volume = (typeof appVol === 'number') ? appVol : 1; } catch (e) {}
-  try { ma.src = tr.url; var pr = ma.play(); if (pr && pr.catch) pr.catch(function () {}); } catch (e) {}
+  try { ma.src = dcUrl(tr.url); var pr = ma.play(); if (pr && pr.catch) pr.catch(function () {}); } catch (e) {}
   renderMusic();
   try { sfx(function(){SFX.tap();}); } catch (e) {}
 }
