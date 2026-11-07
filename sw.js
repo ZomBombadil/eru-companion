@@ -1,6 +1,6 @@
 /* Eru Companion — service worker: cache the app shell, serve cache-first.
    The pet + arena work fully offline; radio streams still need connectivity. */
-const CACHE = 'eru-companion-v3.3.1';
+const CACHE = 'eru-companion-v3.3.2';
 const SHELL = [
   './',
   './index.html',
@@ -30,6 +30,8 @@ self.addEventListener('activate', function (e) {
 self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;
   var url = new URL(e.request.url);
+  // Discord Activities: never intercept proxy traffic (/.proxy/ -> mapped origins).
+  if (url.pathname.indexOf('/.proxy/') === 0) return;
   // Never intercept radio API calls or audio streams — those are live network.
   if (url.hostname.indexOf('radio-browser.info') !== -1) return;
   if (url.hostname.indexOf('somafm.com') !== -1) return;
