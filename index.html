@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#031007">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="pwa-icons/icon-192.png">
-<title>Eru · Cosmic Companion v3.3.1 🌌</title>
+<title>Eru · Cosmic Companion v3.3.2 🌌</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { height:100%; }
@@ -497,7 +497,7 @@
         <div id="stageAge">🥚 Egg</div>
         <div id="powerBadge">⚡ PL 1</div>
       </div>
-      <div id="ver">v3.3.1</div>
+      <div id="ver">v3.3.2</div>
       <button id="soundBtn" title="Sound on/off" aria-label="toggle sound">🔊</button>
       <button id="settingsBtn" title="Settings" aria-label="open settings">⚙️</button>
     </header>
@@ -859,7 +859,7 @@
 <script>
 'use strict';
 /* =====================================================================
-   ERU · COSMIC COMPANION v3.3.1 — clean rewrite
+   ERU · COSMIC COMPANION v3.3.2 — clean rewrite
    Pet + Battle Arena + US Radio. Single file, no dependencies.
    ===================================================================== */
 /* ---------------- bulletproof DOM helpers ---------------- */
@@ -2872,10 +2872,17 @@ function bindArena() {
 const RADIO_MIRRORS = ['de1.api.radio-browser.info', 'de2.api.radio-browser.info', 'nl1.api.radio-browser.info'];
 const RPAGE = 200;
 const RLS_FAV = 'eru-radio-favs-v2', RLS_RECENT = 'eru-radio-recent-v2', RLS_VOL = 'eru-radio-vol-v2';
+/* Stations verified dead 2026-11-08 (Radio Browser top lists) — excluded
+   from every radio view. Shanson: HTTP 404; Mahmoud Khalil Alhussary: HTTP 502.
+   Add a stationuuid here (not a name) to remove a dead station. */
+const RB_DEAD = {
+  '30c38245-b3f4-4481-abe4-79b8f07a5a7c': true, /* Shanson bez tsenzury — 404 */
+  '3f5d8a52-dea9-4201-9575-a58adc8e9263': true  /* Mahmoud Khalil Alhussary — 502 */
+};
 const US_STATES = ['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming'];
 const GENRES = [['','🎵 ALL'],['news','NEWS'],['rock','ROCK'],['country','COUNTRY'],['jazz','JAZZ'],['classical','CLASSICAL'],['hip-hop','HIP-HOP'],['sports','SPORTS'],['talk','TALK']];
 // 19 verified Knoxville, TN fallback stations (embedded; used when the directory is unreachable)
-const KNOX_FALLBACK = [{"stationuuid":"knox-WCYQ","name":"WCYQ 100.3 FM 100.3 The Wolf","state":"Tennessee","tags":"country","url":null,"homepage":"https://knoxvillewolf.com"},{"stationuuid":"knox-WDKW","name":"WDKW 95.7 FM 95.7 Duke FM","state":"Tennessee","tags":"classic country","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WDKWFMAAC.aac","homepage":null},{"stationuuid":"knox-WDVX","name":"WDVX 89.9 FM East Tennessee's Own","state":"Tennessee","tags":"americana","url":"https://wdvx.streamguys1.com/live","homepage":"http://wdvx.com/"},{"stationuuid":"knox-WIMZ","name":"WIMZ 103.5 FM 103.5 WIMZ","state":"Tennessee","tags":"classic rock","url":"https://26353.live.streamtheworld.com/WIMZFMAAC_SC","homepage":"http://www.wimz.com/"},{"stationuuid":"knox-WIVK","name":"WIVK 107.7 FM 107.7 WIVK","state":"Tennessee","tags":"country","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WIVKFMAAC.aac","homepage":"http://www.wivk.com/"},{"stationuuid":"knox-WJBE","name":"WJBE 99.7 FM · 1040 AM Jammin' 99.7","state":"Tennessee","tags":"urban contemporary","url":"http://ice8.securenetsystems.net/WJBE","homepage":"https://wjbe.org"},{"stationuuid":"knox-WJXB","name":"WJXB 97.5 FM B97.5","state":"Tennessee","tags":"adult contemporary","url":"https://19263.live.streamtheworld.com/WJXBFMAAC_SC","homepage":null},{"stationuuid":"knox-WKHT","name":"WKHT 104.5 FM Hot 104.5","state":"Tennessee","tags":"rhythmic chr","url":"https://n06.rcs.revma.com/k15hbcmfz7uvv","homepage":"http://www.hot1045.net/"},{"stationuuid":"knox-WMYL","name":"WMYL 96.7 FM 96.7 Merle","state":"Tennessee","tags":"country","url":null,"homepage":"https://www.967merle.com/"},{"stationuuid":"knox-WNFZ","name":"WNFZ 94.3 FM 94.3 Jack FM","state":"Tennessee","tags":"adult hits","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WNFZFMAAC.aac","homepage":"https://jackfmknoxville.com"},{"stationuuid":"knox-WNML","name":"WNML 990 AM · 99.1 FM The Sports Animal","state":"Tennessee","tags":"sports","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WNMLAM","homepage":null},{"stationuuid":"knox-WNOX","name":"WNOX 93.1 FM Classic Rock 93.1","state":"Tennessee","tags":"classic rock","url":null,"homepage":"https://www.classicrock931.fm/"},{"stationuuid":"knox-WNRX","name":"WNRX 99.3 FM 99.3 The Lake","state":"Tennessee","tags":"classic rock","url":null,"homepage":"https://wnrxradio.com/"},{"stationuuid":"knox-WOFM","name":"WOFM 89.1 FM Air1","state":"Tennessee","tags":"christian contemporary","url":"https://maestro.emfcdn.com/stream_for/air1/airable/aac","homepage":null},{"stationuuid":"knox-WOKI","name":"WOKI 98.7 FM NewsTalk 98.7","state":"Tennessee","tags":"news/talk","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WOKIFMAAC.aac","homepage":null},{"stationuuid":"knox-WUOT","name":"WUOT 91.9 FM UT Public Radio","state":"Tennessee","tags":"public npr","url":"https://26223.live.streamtheworld.com/WUOTFM_SC","homepage":"http://www.wuot.org/"},{"stationuuid":"knox-WUTK","name":"WUTK 90.3 FM The Rock","state":"Tennessee","tags":"college","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WUTKFM.mp3","homepage":null},{"stationuuid":"knox-WWST","name":"WWST 102.1 FM Star 102.1","state":"Tennessee","tags":"top 40 chr","url":null,"homepage":"https://www.star1021fm.com/"},{"stationuuid":"knox-WYLV","name":"WYLV 88.3 FM K-LOVE","state":"Tennessee","tags":"christian contemporary","url":"https://maestro.emfcdn.com/stream_for/k-love/airable/aac","homepage":null}];
+const KNOX_FALLBACK = [{"stationuuid":"knox-WDKW","name":"WDKW 95.7 FM 95.7 Duke FM","state":"Tennessee","tags":"classic country","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WDKWFMAAC.aac","homepage":null},{"stationuuid":"knox-WDVX","name":"WDVX 89.9 FM East Tennessee's Own","state":"Tennessee","tags":"americana","url":"https://wdvx.streamguys1.com/live","homepage":"http://wdvx.com/"},{"stationuuid":"knox-WIMZ","name":"WIMZ 103.5 FM 103.5 WIMZ","state":"Tennessee","tags":"classic rock","url":"https://26353.live.streamtheworld.com/WIMZFMAAC_SC","homepage":"http://www.wimz.com/"},{"stationuuid":"knox-WIVK","name":"WIVK 107.7 FM 107.7 WIVK","state":"Tennessee","tags":"country","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WIVKFMAAC.aac","homepage":"http://www.wivk.com/"},{"stationuuid":"knox-WJBE","name":"WJBE 99.7 FM · 1040 AM Jammin' 99.7","state":"Tennessee","tags":"urban contemporary","url":"http://ice8.securenetsystems.net/WJBE","homepage":"https://wjbe.org"},{"stationuuid":"knox-WJXB","name":"WJXB 97.5 FM B97.5","state":"Tennessee","tags":"adult contemporary","url":"https://19263.live.streamtheworld.com/WJXBFMAAC_SC","homepage":null},{"stationuuid":"knox-WKHT","name":"WKHT 104.5 FM Hot 104.5","state":"Tennessee","tags":"rhythmic chr","url":"https://n06.rcs.revma.com/k15hbcmfz7uvv","homepage":"http://www.hot1045.net/"},{"stationuuid":"knox-WNFZ","name":"WNFZ 94.3 FM 94.3 Jack FM","state":"Tennessee","tags":"adult hits","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WNFZFMAAC.aac","homepage":"https://jackfmknoxville.com"},{"stationuuid":"knox-WNML","name":"WNML 990 AM · 99.1 FM The Sports Animal","state":"Tennessee","tags":"sports","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WNMLAM","homepage":null},{"stationuuid":"knox-WOFM","name":"WOFM 89.1 FM Air1","state":"Tennessee","tags":"christian contemporary","url":"https://maestro.emfcdn.com/stream_for/air1/airable/aac","homepage":null},{"stationuuid":"knox-WOKI","name":"WOKI 98.7 FM NewsTalk 98.7","state":"Tennessee","tags":"news/talk","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WOKIFMAAC.aac","homepage":null},{"stationuuid":"knox-WUOT","name":"WUOT 91.9 FM UT Public Radio","state":"Tennessee","tags":"public npr","url":"https://26223.live.streamtheworld.com/WUOTFM_SC","homepage":"http://www.wuot.org/"},{"stationuuid":"knox-WUTK","name":"WUTK 90.3 FM The Rock","state":"Tennessee","tags":"college","url":"https://playerservices.streamtheworld.com/api/livestream-redirect/WUTKFM.mp3","homepage":null},{"stationuuid":"knox-WYLV","name":"WYLV 88.3 FM K-LOVE","state":"Tennessee","tags":"christian contemporary","url":"https://maestro.emfcdn.com/stream_for/k-love/airable/aac","homepage":null}];
 /* ---------- LOCAL / East Tennessee curated stations ---------- */
 /* WATO 106.1 Atomic 106 (Oliver Springs/Knoxville, alt rock, Loud Media) is NOT in
    Radio Browser at all (verified: byname/search for Atomic/WATO/Atomic 106 = 0 TN hits),
@@ -3066,7 +3073,7 @@ function rLoadTop() {
   const ld = el('rLoading'); if (ld) ld.classList.remove('hidden');
   const path = (rSrc === 'us')
     ? 'stations/search?countrycode=US&order=votes&reverse=true&limit=200&hidebroken=true'
-    : 'stations/topvote/200';
+    : 'stations/topvote/200?hidebroken=true';
   return rFetch(path).then(function (data) {
     rList = (data || []).map(rNorm);
     rList.sort(rNaSortVotes);
@@ -3171,7 +3178,7 @@ function rGenreChips(s) {
 }
 function rRender() {
   const listEl = el('rList'); if (!listEl) return;
-  const arr = rVisibleList().filter(function (s) { return !!s.url; });
+  const arr = rVisibleList().filter(function (s) { return !!s.url && !RB_DEAD[s.uuid]; });
   listEl.innerHTML = '';
   const more = (!rFallback && rView !== 'fav' && rView !== 'recent' && rHasMore) ? ' · scroll for more' : '';
   const rc = el('rCount');
@@ -3554,7 +3561,7 @@ function bindRadioControls() {
 function bootRadio() {
   if (rBooted) return;
   rBooted = true;
-  rFavs = rLSget(RLS_FAV, []);
+  rFavs = rLSget(RLS_FAV, []).filter(function (f) { return !RB_DEAD[f.uuid]; });
   rRecent = rLSget(RLS_RECENT, []);
   try {
     const sel = el('rState');
@@ -3618,8 +3625,8 @@ function registerSW() {
 }
 
 /* ================= v3.3: MUSIC + 8 BALL + SETTINGS ================= */
-const APP_VERSION = '3.3.1';
-const BUILD_DATE = '2026-11-02';
+const APP_VERSION = '3.3.2';
+const BUILD_DATE = '2026-11-08';
 const SITE_BASE = 'https://zombombadil.github.io/zombombadil-site/';
 
 /* ---------------- Discord Activities (Embedded App SDK 2.5.0, MIT) ----------------
