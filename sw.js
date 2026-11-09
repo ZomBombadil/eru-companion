@@ -1,6 +1,6 @@
 /* Eru Companion — service worker: cache the app shell, serve cache-first.
    The pet + arena work fully offline; radio streams still need connectivity. */
-const CACHE = 'eru-companion-v3.3.2';
+const CACHE = 'eru-companion-v3.3.3';
 const SHELL = [
   './',
   './index.html',
